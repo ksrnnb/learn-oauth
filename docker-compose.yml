@@ -35,16 +35,6 @@ services:
       -  "${PWD}/authorization:/go/src"
     ports:
       - "3001:3000"
-
-  resource:
-    build:
-      context: .
-      dockerfile: "${PWD}/docker/golang/Dockerfile"
-    tty: true
-    volumes:
-      -  "${PWD}/authorization:/go/src"
-    ports:
-      - "3002:3000"
     depends_on:
       - resource_db
 
