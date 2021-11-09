@@ -10,8 +10,8 @@
 
 <body>
     <h2>Home</h2>
-    <form action="">
-        {{ .csrfField }}
+    <form action="/" method="POST">
+        <input type="hidden" name="_token" value="{{ .csrf }}">
         <button type="submit">OAuth2.0を開始する</button>
     </form>
 </body>

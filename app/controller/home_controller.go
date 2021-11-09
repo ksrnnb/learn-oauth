@@ -11,5 +11,7 @@ func NewHomeController() HomeController {
 }
 
 func (h HomeController) Home(c Context) error {
-	return c.Render(http.StatusOK, "home.html", nil)
+	return c.Render(http.StatusOK, "home.html", map[string]interface{}{
+		"csrf": c.Get("csrf"),
+	})
 }
