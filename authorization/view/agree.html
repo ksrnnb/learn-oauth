@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ほげアプリ</title>
+</head>
+
+<body>
+    <h2>ほげアプリ 権限同意</h2>
+    <h5>「{{ .clientName }}」が以下のの許可をリクエストしています。</h5>
+
+    <form action="/deny" method="POST">
+        <input type="hidden" name="_token" value="{{ .csrf }}">
+        <div style="margin-top: 30px;">
+            <button type="submit">拒否</button>
+        </div>
+    </form>
+
+    <form action="/agree" method="POST">
+        <input type="hidden" name="_token" value="{{ .csrf }}">
+        <div style="margin-top: 30px;">
+            <button type="submit">同意</button>
+        </div>
+    </form>
+</body>
+
+</html>

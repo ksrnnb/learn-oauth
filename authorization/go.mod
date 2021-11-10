@@ -2,10 +2,16 @@ module github.com/ksrnnb/learn-oauth/authorization
 
 go 1.17
 
-require github.com/labstack/echo/v4 v4.6.1
+require (
+	github.com/gorilla/sessions v1.2.1
+	github.com/labstack/echo-contrib v0.11.0
+	github.com/labstack/echo/v4 v4.6.1
+)
 
 require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/gorilla/context v1.1.1 // indirect
+	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
