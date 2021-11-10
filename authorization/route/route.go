@@ -9,6 +9,8 @@ func SetRoute(e *echo.Echo) {
 	e.Renderer = newTemplate()
 	e.GET("/authorize", startOAuth)
 	e.POST("/authorize", authorize)
+	e.GET("/deny", showDenyPage)
+	e.POST("/deny", deny)
 }
 
 // 認証画面を返す
@@ -21,4 +23,16 @@ func startOAuth(c echo.Context) error {
 func authorize(c echo.Context) error {
 	OAuthController := controller.NewOAuthController()
 	return OAuthController.Authorize(c)
+}
+
+// 権限委譲に拒否
+func deny(c echo.Context) error {
+	OAuthController := controller.NewOAuthController()
+	return OAuthController.Deny(c)
+}
+
+// 権限委譲に拒否した後の画面
+func showDenyPage(c echo.Context) error {
+	OAuthController := controller.NewOAuthController()
+	return OAuthController.ShowDenyPage(c)
 }

@@ -10,7 +10,7 @@
 
 <body>
     <h2>ほげアプリ 権限同意</h2>
-    <h5>「{{ .clientName }}」が以下のの許可をリクエストしています。</h5>
+    <h5>「{{ .clientName }}」が以下の許可をリクエストしています。</h5>
 
     <form action="/deny" method="POST">
         <input type="hidden" name="_token" value="{{ .csrf }}">

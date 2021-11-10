@@ -12,7 +12,7 @@ type Client struct {
 func clientsInMemory() []*Client {
 	return []*Client{
 		{
-			Name: "ぴよぴよ",
+			Name: "ぴよぴよアプリ",
 			ClientId: "abcde12345",
 			ClientSecret: "abcde12345secert",
 			RedirectUri: "http://localhost:3000/callback",

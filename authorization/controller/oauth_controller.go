@@ -69,6 +69,20 @@ func (controller OAuthController) Authorize(c echo.Context) error {
 	})
 }
 
+func (contrller OAuthController) Deny(c echo.Context) error {
+	err := session.Destroy(c)
+
+	if err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusFound, "/deny")
+}
+
+func (contrller OAuthController) ShowDenyPage(c echo.Context) error {
+	return c.Render(http.StatusOK, "deny.html", nil)
+}
+
 // client idからクライアントを探す
 func (controller OAuthController) getClient(clientId string) (*resource.Client, error) {
 	return resource.FindClient(clientId)
