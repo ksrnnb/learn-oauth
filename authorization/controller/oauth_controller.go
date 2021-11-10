@@ -86,11 +86,7 @@ func (controller OAuthController) Agree(c echo.Context) error {
 		return err
 	}
 
-	err = resource.AddAllowList(clientId.(string), userId.(int))
-
-	if err != nil {
-		return err
-	}
+	resource.AddAllowListIfNeeded(clientId.(string), userId.(int))
 
 	client, err := controller.getClient(clientId.(string))
 

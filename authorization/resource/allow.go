@@ -1,9 +1,5 @@
 package resource
 
-import (
-	"errors"
-)
-
 type AllowList struct {
 	ClientUsers []*ClientUser
 }
@@ -16,13 +12,12 @@ type ClientUser struct {
 var allowList AllowList
 
 // 許可リストに加える
-func AddAllowList(clientId string, userId int) error {
+func AddAllowListIfNeeded(clientId string, userId int) {
 	if allowList.isDuplicate(clientId, userId) {
-		return errors.New("user is already registered")
+		return
 	}
 
 	allowList.Add(clientId, userId)
-	return nil
 }
 
 // 重複しているかどうか
