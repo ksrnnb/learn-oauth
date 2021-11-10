@@ -3,25 +3,25 @@ package resource
 import "errors"
 
 type Client struct {
-	Name string
-	ClientId string
+	Name         string
+	ClientId     string
 	ClientSecret string
-	RedirectUri string
+	RedirectUri  string
 }
 
 func clientsInMemory() []*Client {
 	return []*Client{
 		{
-			Name: "ぴよぴよアプリ",
-			ClientId: "abcde12345",
+			Name:         "ぴよぴよアプリ",
+			ClientId:     "abcde12345",
 			ClientSecret: "abcde12345secert",
-			RedirectUri: "http://localhost:3000/callback",
+			RedirectUri:  "http://localhost:3000/callback",
 		},
 		{
-			Name: "dummy",
-			ClientId: "dummy",
+			Name:         "dummy",
+			ClientId:     "dummy",
 			ClientSecret: "dummy",
-			RedirectUri: "dummy",
+			RedirectUri:  "dummy",
 		},
 	}
 }
@@ -30,7 +30,7 @@ func FindClient(clientId string) (*Client, error) {
 	clients := clientsInMemory()
 
 	for _, client := range clients {
-		if (client.ClientId != clientId) {
+		if client.ClientId != clientId {
 			continue
 		}
 

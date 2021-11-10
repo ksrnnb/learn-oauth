@@ -9,6 +9,7 @@ func SetRoute(e *echo.Echo) {
 	e.Renderer = newTemplate()
 	e.GET("/authorize", startOAuth)
 	e.POST("/authorize", authorize)
+	e.POST("/agree", agree)
 	e.GET("/deny", showDenyPage)
 	e.POST("/deny", deny)
 }
@@ -23,6 +24,12 @@ func startOAuth(c echo.Context) error {
 func authorize(c echo.Context) error {
 	OAuthController := controller.NewOAuthController()
 	return OAuthController.Authorize(c)
+}
+
+// 権限同意後
+func agree(c echo.Context) error {
+	OAuthController := controller.NewOAuthController()
+	return OAuthController.Agree(c)
 }
 
 // 権限委譲に拒否

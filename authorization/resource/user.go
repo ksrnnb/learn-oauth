@@ -3,24 +3,24 @@ package resource
 import "errors"
 
 type User struct {
-	Id int
-	Email string
-	Password string
+	Id         int
+	Email      string
+	Password   string
 	PictureUrl string
 }
 
 func usersInMemory() []*User {
 	return []*User{
 		{
-			Id: 1,
-			Email: "test@example.com",
-			Password: "3jd8Ge30Qcw2h",
+			Id:         1,
+			Email:      "test@example.com",
+			Password:   "3jd8Ge30Qcw2h",
 			PictureUrl: "https://hogehoge********.com/83hagbfahaaeg",
 		},
 		{
-			Id: 2,
-			Email: "test2@example.com",
-			Password: "09H$w63hdiHEDd",
+			Id:         2,
+			Email:      "test2@example.com",
+			Password:   "09H$w63hdiHEDd",
 			PictureUrl: "https://hogehoge2********.com/83hagbfahaaeg",
 		},
 	}
@@ -31,7 +31,7 @@ func FindUser(email string, password string) (*User, error) {
 	users := usersInMemory()
 
 	for _, user := range users {
-		if (user.Email != email) {
+		if user.Email != email {
 			continue
 		}
 

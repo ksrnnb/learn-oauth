@@ -45,5 +45,5 @@ func Destroy(c echo.Context) error {
 	}
 
 	sess.Options = &sessions.Options{MaxAge: -1, Path: "/"}
-    return sess.Save(c.Request(), c.Response())
+	return sess.Save(c.Request(), c.Response())
 }
