@@ -21,6 +21,7 @@ func Save(key interface{}, value interface{}, c echo.Context) error {
 	return sess.Save(c.Request(), c.Response())
 }
 
+// セッション値の取得
 func Get(key interface{}, c echo.Context) (interface{}, error) {
 	sess, err := session.Get(sessionName, c)
 	if err != nil {
@@ -34,11 +35,22 @@ func Get(key interface{}, c echo.Context) (interface{}, error) {
 	}
 
 	return value, nil
+}
 
+// セッション値の削除
+func Delete(key interface{}, c echo.Context) error {
+	sess, err := session.Get(sessionName, c)
+
+	if err != nil {
+		return err
+	}
+
+	delete(sess.Values, key)
+	return nil
 }
 
 // セッション破棄
-func Destroy(c echo.Context) error {
+func DestroySession(c echo.Context) error {
 	sess, err := session.Get(sessionName, c)
 	if err != nil {
 		return err

@@ -25,6 +25,10 @@ func (controlelr OAuthController) StartOAuth(c echo.Context) error {
 		return err
 	}
 
+	// TODO: リダイレクトURIが一致することを確認
+	// TODO: エラーのリダイレクト
+	// https://openid-foundation-japan.github.io/rfc6749.ja.html#code-authz-error
+
 	err = session.Save("clientId", client.ClientId, c)
 	err = session.Save("state", state, c)
 
@@ -117,7 +121,7 @@ func (controller OAuthController) Agree(c echo.Context) error {
 }
 
 func (controller OAuthController) Deny(c echo.Context) error {
-	err := session.Destroy(c)
+	err := session.DestroySession(c)
 
 	if err != nil {
 		return err

@@ -12,6 +12,7 @@ func SetRoute(e *echo.Echo) {
 	e.POST("/agree", agree)
 	e.GET("/deny", showDenyPage)
 	e.POST("/deny", deny)
+	e.POST("/token", token)
 }
 
 // 認証画面を返す
@@ -42,4 +43,10 @@ func deny(c echo.Context) error {
 func showDenyPage(c echo.Context) error {
 	OAuthController := controller.NewOAuthController()
 	return OAuthController.ShowDenyPage(c)
+}
+
+// トークンエンドポイント
+func token(c echo.Context) error {
+	tokenController := controller.NewTokenController()
+	return tokenController.Token(c)
 }
