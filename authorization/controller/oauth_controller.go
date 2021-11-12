@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/ksrnnb/learn-oauth/authorization/helpers"
 	"github.com/ksrnnb/learn-oauth/authorization/resource"
 	"github.com/ksrnnb/learn-oauth/authorization/session"
 	"github.com/labstack/echo/v4"
@@ -98,12 +97,7 @@ func (controller OAuthController) Agree(c echo.Context) error {
 		return err
 	}
 
-	code := controller.issueAuthorizationCode()
-	err = session.Save("code", code, c)
-
-	if err != nil {
-		return err
-	}
+	code := controller.issueAuthorizationCode(clientId.(string))
 
 	state, err := session.Get("state", c)
 
@@ -111,7 +105,7 @@ func (controller OAuthController) Agree(c echo.Context) error {
 		return err
 	}
 
-	callbackUrl, err := controller.callbackUrl(client, code, state.(string))
+	callbackUrl, err := controller.callbackUrl(client, code.Code, state.(string))
 
 	if err != nil {
 		return err
@@ -140,8 +134,8 @@ func (controller OAuthController) getClient(clientId string) (*resource.Client, 
 }
 
 // 認可コードを発行する
-func (controller OAuthController) issueAuthorizationCode() string {
-	return helpers.RandomString(32)
+func (controller OAuthController) issueAuthorizationCode(clientId string) *resource.AuthorizationCode {
+	return resource.CreateNewAuthorizationCode(clientId)
 }
 
 // コールバックURLを作成する

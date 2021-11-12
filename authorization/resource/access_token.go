@@ -2,10 +2,6 @@ package resource
 
 import "github.com/ksrnnb/learn-oauth/authorization/helpers"
 
-type AccessTokenStore struct {
-	tokens []*AccessToken
-}
-
 type AccessToken struct {
 	ClientId  string
 	Token     string

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/ksrnnb/learn-oauth/authorization/resource"
@@ -30,35 +31,30 @@ type TokenResponse struct {
 	TokenType   string `json:"token_type"`
 }
 
+// TODO: 基本的にはRFCみながら実装する
+// https://openid-foundation-japan.github.io/rfc6749.ja.html
+
 // トークンリクエスト
 func (controller TokenController) Token(c echo.Context) error {
-	err := controller.validateCode(c)
-
-	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, map[string]string{
-			"message": err.Error(),
-		})
-	}
-
 	var req *TokenRequest
 	if err := c.Bind(&req); err != nil {
-		c.JSON(http.StatusInternalServerError, map[string]string{
-			"message": "error while binding request body",
-		})
+		return errorJSONResponse(c, http.StatusInternalServerError, "error while binding request body")
 	}
 
 	client, err := controller.getClient(req.ClientId, req.ClientSecret)
 
 	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, map[string]string{
-			"message": err.Error(),
-		})
+		return errorJSONResponse(c, http.StatusUnprocessableEntity, err.Error())
+	}
+
+	err = controller.validateCode(req)
+
+	if err != nil {
+		return errorJSONResponse(c, http.StatusUnprocessableEntity, err.Error())
 	}
 
 	if client.RedirectUri != req.RedirectUri {
-		return c.JSON(http.StatusUnprocessableEntity, map[string]string{
-			"message": "redirect uri is invalid",
-		})
+		return errorJSONResponse(c, http.StatusUnprocessableEntity, "redirect uri is invalid")
 	}
 
 	accessToken := resource.CreateNewToken(client.ClientId)
@@ -72,25 +68,16 @@ func (controller TokenController) Token(c echo.Context) error {
 }
 
 // 認可コードの有効性確認
-func (controller TokenController) validateCode(c echo.Context) error {
-	sessionCode, err := session.Get("code", c)
+func (controller TokenController) validateCode(req *TokenRequest) error {
+	storedCode := resource.FindActiveAuthorizationCode(req.ClientId)
 
-	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, map[string]string{
-			"message": "authorization code is invalid",
-		})
+	if storedCode == nil {
+		return errors.New("authorization code is not found")
 	}
 
-	postedCode := c.FormValue("code")
-	if postedCode != sessionCode {
-		return c.JSON(http.StatusUnprocessableEntity, map[string]string{
-			"message": "authorization code mismatch",
-		})
+	if req.Code != storedCode.Code {
+		return errors.New("authorization code mismatch")
 	}
-
-	// TODO: 期限チェック
-
-	controller.deleteCode(c)
 
 	return nil
 }
@@ -112,4 +99,12 @@ func (controller TokenController) getClient(clientId string, clientSecret string
 
 func (controller TokenController) deleteCode(c echo.Context) {
 	session.Delete("code", c)
+}
+
+// エラーレスポンスを返す
+func errorJSONResponse(c echo.Context, statusCode int, message string) error {
+	fmt.Println(message)
+	return c.JSON(statusCode, map[string]string{
+		"message": message,
+	})
 }
