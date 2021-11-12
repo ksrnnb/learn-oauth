@@ -9,6 +9,7 @@ func SetRoute(e *echo.Echo) {
 	e.Renderer = newTemplate()
 	e.GET("/", home)
 	e.POST("/", startOAuth)
+	e.GET("/callback", callback)
 }
 
 func home(c echo.Context) error {
@@ -19,4 +20,9 @@ func home(c echo.Context) error {
 func startOAuth(c echo.Context) error {
 	OAuthController := controller.NewOAuthController()
 	return OAuthController.StartOAuth(c)
+}
+
+func callback(c echo.Context) error {
+	OAuthController := controller.NewOAuthController()
+	return OAuthController.Callback(c)
 }

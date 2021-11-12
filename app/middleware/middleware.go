@@ -11,8 +11,8 @@ import (
 
 func SetMiddleware(e *echo.Echo) {
 	e.Use(echoMiddleware.CSRFWithConfig(echoMiddleware.CSRFConfig{
-		TokenLookup: "form:_token",
-		CookieSecure: false,  // localではfalse
+		TokenLookup:    "form:_token",
+		CookieSecure:   false, // localではfalse
 		CookieHTTPOnly: true,
 	}))
 
