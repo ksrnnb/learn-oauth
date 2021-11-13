@@ -65,6 +65,7 @@ type TokenResponse struct {
 // 認可コードを受け取って、アクセストークン要求、リソース情報の取得。
 func (controller OAuthController) Callback(c echo.Context) error {
 	sessionState, err := session.Get("state", c)
+
 	if err != nil {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, err.Error())
 	}
