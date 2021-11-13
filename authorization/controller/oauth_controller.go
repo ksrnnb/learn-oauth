@@ -21,18 +21,17 @@ func (controller OAuthController) ShowAuthorize(c echo.Context) error {
 	client, err := controller.getClient(clientId)
 
 	if err != nil {
-		// TODO: リソースオーナーへのレスポンスになるから、HTMLにする
-		return errorJSONResponse(c, http.StatusUnprocessableEntity, "client is not found")
+		return renderErrorPage(c, http.StatusUnprocessableEntity, "client is not found")
 	}
 
 	if client.RedirectUri != c.QueryParam("redirect_uri") {
-		return errorJSONResponse(c, http.StatusUnprocessableEntity, "redirect uri is invalid")
+		return renderErrorPage(c, http.StatusUnprocessableEntity, "redirect uri is invalid")
 	}
 
 	err = session.Save("state", c.QueryParam("state"), c)
 
 	if err != nil {
-		return errorJSONResponse(c, http.StatusInternalServerError, "error while storing session value")
+		return renderErrorPage(c, http.StatusInternalServerError, "error while storing session value")
 	}
 
 	errorMessage, _ := session.Get("error", c)
@@ -163,4 +162,11 @@ func (controller OAuthController) authorizationUrl(c echo.Context) string {
 	authorizeUrl.RawQuery = query.Encode()
 
 	return authorizeUrl.String()
+}
+
+// エラーページの表示
+func renderErrorPage(c echo.Context, statusCode int, message string) error {
+	return c.Render(statusCode, "error.html", map[string]string{
+		"error": message,
+	})
 }
