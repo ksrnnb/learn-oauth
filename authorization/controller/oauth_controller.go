@@ -1,10 +1,8 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/ksrnnb/learn-oauth/authorization/resource"
 	"github.com/ksrnnb/learn-oauth/authorization/session"
@@ -12,6 +10,11 @@ import (
 )
 
 type OAuthController struct{}
+
+const (
+	ACCESS_DENIED = "access_denied"
+	UNSUPPORTED_RESPONSE_TYPE = "unsupported_response_type"
+)
 
 func NewOAuthController() OAuthController {
 	return OAuthController{}
@@ -26,11 +29,18 @@ func (controller OAuthController) ShowAuthorize(c echo.Context) error {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "client is not found")
 	}
 
+	if c.QueryParam("response_type") != "code" {
+		url := controller.buildErrorResponseUrl(
+			client.RedirectUri,
+			c.QueryParam("state"),
+			UNSUPPORTED_RESPONSE_TYPE)
+
+		return c.Redirect(http.StatusFound, url)
+	}
+
 	if client.RedirectUri != c.QueryParam("redirect_uri") {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "redirect uri is invalid")
 	}
-
-	err = session.Save("state", c.QueryParam("state"), c)
 
 	if err != nil {
 		return renderErrorPage(c, http.StatusInternalServerError, "error while storing session value")
@@ -72,6 +82,7 @@ func (controller OAuthController) Login(c echo.Context) error {
 		"csrf":   c.Get("csrf"),
 		"client": client,
 		"userId": user.Id,
+		"state": c.FormValue("state"),
 	})
 }
 
@@ -89,14 +100,7 @@ func (controller OAuthController) Agree(c echo.Context) error {
 	}
 
 	code := controller.issueAuthorizationCode(clientId, userId)
-
-	state, err := session.Get("state", c)
-
-	if err != nil {
-		return err
-	}
-
-	callbackUrl, err := controller.callbackUrl(client, code.Code, state.(string))
+	callbackUrl, err := controller.callbackUrl(client, code.Code, c.FormValue("state"))
 
 	if err != nil {
 		return err
@@ -113,16 +117,8 @@ func (controller OAuthController) Deny(c echo.Context) error {
 	if err != nil {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "client id is invalid")
 	}
-
-	state, err := session.Get("state", c)
-
-	if err != nil {
-		return err
-	}
-
-	url := controller.buildErrorResponseUrl(client.RedirectUri, state.(string))
+	url := controller.buildErrorResponseUrl(client.RedirectUri, c.FormValue("state"), ACCESS_DENIED)
 	
-	fmt.Println(url)
 	return c.Redirect(http.StatusFound, url)
 }
 
@@ -173,28 +169,18 @@ func (controller OAuthController) authorizationUrl(c echo.Context) string {
 
 // エラーレスポンスのリダイレクトURLを作成する
 // https://openid-foundation-japan.github.io/rfc6749.ja.html#rfc.section.4.1.2.1
-func (controller OAuthController) buildErrorResponseUrl(redirectUri string, state string) string {
-	urlSchemeSplitted := strings.Split(redirectUri, "://")
-	urlHostSplitted := strings.Split(urlSchemeSplitted[1], "/")
+func (controller OAuthController) buildErrorResponseUrl(redirectUri, state, errorCode string) string {
+	redirectUrl, err := url.Parse(redirectUri)
 
-	redirectUrl := &url.URL{
-		Scheme: urlSchemeSplitted[0],
-		Host: urlHostSplitted[0],
-		Path: urlHostSplitted[1],
+	if err != nil {
+		return ""
 	}
 
 	query := redirectUrl.Query()
-	query.Set("error", "access_denied")
+	query.Set("error", errorCode)
 	query.Set("state", state)
 
 	redirectUrl.RawQuery = query.Encode()
 
 	return redirectUrl.String()
-}
-
-// エラーページの表示
-func renderErrorPage(c echo.Context, statusCode int, message string) error {
-	return c.Render(statusCode, "error.html", map[string]string{
-		"error": message,
-	})
 }

@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/ksrnnb/learn-oauth/authorization/resource"
@@ -82,12 +81,4 @@ func (controller TokenController) getClient(clientId string, clientSecret string
 	}
 
 	return client, nil
-}
-
-// エラーレスポンスを返す
-func errorJSONResponse(c echo.Context, statusCode int, message string) error {
-	fmt.Println(message)
-	return c.JSON(statusCode, map[string]string{
-		"message": message,
-	})
 }

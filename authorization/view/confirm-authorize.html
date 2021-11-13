@@ -13,18 +13,20 @@
     <h5>「{{ .client.Name }}」が以下の許可をリクエストしています。</h5>
 
     <form action="/deny" method="POST">
+        <input type="hidden" name="_token" value="{{ .csrf }}">
         <input type="hidden" name="user_id" value="{{ .userId }}">
         <input type="hidden" name="client_id" value="{{ .client.ClientId }}">
-        <input type="hidden" name="_token" value="{{ .csrf }}">
+        <input type="hidden" name="state" value="{{ .state }}">
         <div style="margin-top: 30px;">
             <button type="submit">拒否</button>
         </div>
     </form>
 
     <form action="/agree" method="POST">
+        <input type="hidden" name="_token" value="{{ .csrf }}">
         <input type="hidden" name="user_id" value="{{ .userId }}">
         <input type="hidden" name="client_id" value="{{ .client.ClientId }}">
-        <input type="hidden" name="_token" value="{{ .csrf }}">
+        <input type="hidden" name="state" value="{{ .state }}">
         <div style="margin-top: 30px;">
             <button type="submit">同意</button>
         </div>
