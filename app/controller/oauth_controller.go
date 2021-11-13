@@ -67,13 +67,18 @@ func (controller OAuthController) Callback(c echo.Context) error {
 	sessionState, err := session.Get("state", c)
 	if err != nil {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, err.Error())
-
 	}
 
 	queryState := c.QueryParam("state")
 
 	if sessionState != queryState {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "state doesn't mismatch")
+	}
+
+	errorCode := c.QueryParam("error")
+	
+	if errorCode != "" {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, errorCode)
 	}
 
 	code := c.QueryParam("code")
