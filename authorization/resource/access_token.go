@@ -9,7 +9,7 @@ import (
 
 type AccessToken struct {
 	ClientId      string
-	UserId        int
+	UserId        string
 	Token         string
 	TokenType     string
 	ExpiresIn     int
@@ -19,7 +19,7 @@ type AccessToken struct {
 var accessTokenStore []*AccessToken
 
 // アクセストークンを作成する
-func CreateNewToken(clientId string, userId int) *AccessToken {
+func CreateNewToken(clientId string, userId string) *AccessToken {
 	token := helpers.RandomString(32)
 
 	newToken := &AccessToken{

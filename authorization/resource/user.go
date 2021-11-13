@@ -3,7 +3,7 @@ package resource
 import "errors"
 
 type User struct {
-	Id         int
+	Id         string
 	Name       string
 	Email      string
 	Password   string
@@ -13,14 +13,14 @@ type User struct {
 func usersInMemory() []*User {
 	return []*User{
 		{
-			Id:         1,
+			Id:         "ke561cwh1o943",
 			Name:       "テストユーザー1",
 			Email:      "test@example.com",
 			Password:   "3jd8Ge30Qcw2h",
 			PictureUrl: "https://hogehoge********.com/83hagbfahaaeg",
 		},
 		{
-			Id:         2,
+			Id:         "9dm40h2kd7vgzo",
 			Name:       "テストユーザー2",
 			Email:      "test2@example.com",
 			Password:   "09H$w63hdiHEDd",

@@ -1,33 +1,34 @@
 package resource
 
-type AllowList struct {
-	ClientUsers []*ClientUser
-}
-
 type ClientUser struct {
 	ClientId string
-	UserId   int
+	UserId   string
 }
 
-var allowList AllowList
+var authorizationList []*ClientUser
 
-// 許可リストに加える
-func AddAllowListIfNeeded(clientId string, userId int) {
-	if allowList.isDuplicate(clientId, userId) {
+// 認可リストに加える
+func AddAuthorizationListIfNeeded(clientId string, userId string) {
+	clientUser := &ClientUser{
+		ClientId: clientId,
+		UserId:   userId,
+	}
+
+	if clientUser.isDuplicate() {
 		return
 	}
 
-	allowList.Add(clientId, userId)
+	clientUser.add()
 }
 
 // 重複しているかどうか
-func (a *AllowList) isDuplicate(clientId string, userId int) bool {
-	for _, clientUser := range a.ClientUsers {
-		if clientUser.ClientId != clientId {
+func (c *ClientUser) isDuplicate() bool {
+	for _, clientUser := range authorizationList {
+		if clientUser.ClientId != c.ClientId {
 			continue
 		}
 
-		if clientUser.UserId != userId {
+		if clientUser.UserId != c.UserId {
 			continue
 		}
 
@@ -37,12 +38,12 @@ func (a *AllowList) isDuplicate(clientId string, userId int) bool {
 	return false
 }
 
-// 許可リストに追加する
-func (a *AllowList) Add(clientId string, userId int) {
+// 認可リストに追加する
+func (c *ClientUser) add() {
 	clientUser := &ClientUser{
-		ClientId: clientId,
-		UserId:   userId,
+		ClientId: c.ClientId,
+		UserId:   c.UserId,
 	}
 
-	a.ClientUsers = append(a.ClientUsers, clientUser)
+	authorizationList = append(authorizationList, clientUser)
 }

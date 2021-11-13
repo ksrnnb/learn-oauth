@@ -10,7 +10,7 @@ import (
 type AuthorizationCode struct {
 	Id            int
 	ClientId      string
-	UserId        int
+	UserId        string
 	Code          string
 	IsUsed        bool
 	ExpiresIn     int
@@ -20,7 +20,7 @@ type AuthorizationCode struct {
 var authorizationCodeStore []*AuthorizationCode
 
 // 認可コードを作成する
-func CreateNewAuthorizationCode(clientId string, userId int) *AuthorizationCode {
+func CreateNewAuthorizationCode(clientId string, userId string) *AuthorizationCode {
 	code := helpers.RandomString(32)
 
 	newCode := &AuthorizationCode{

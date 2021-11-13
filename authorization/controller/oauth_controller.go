@@ -29,12 +29,6 @@ func (controller OAuthController) ShowAuthorize(c echo.Context) error {
 		return errorJSONResponse(c, http.StatusUnprocessableEntity, "redirect uri is invalid")
 	}
 
-	err = session.Save("clientId", client.ClientId, c)
-
-	if err != nil {
-		return errorJSONResponse(c, http.StatusInternalServerError, "error while storing session value")
-	}
-
 	err = session.Save("state", c.QueryParam("state"), c)
 
 	if err != nil {
@@ -43,13 +37,13 @@ func (controller OAuthController) ShowAuthorize(c echo.Context) error {
 
 	errorMessage, _ := session.Get("error", c)
 	session.Delete("error", c)
-	
+
 	return c.Render(http.StatusOK, "authenticate.html", map[string]interface{}{
-		"csrf": c.Get("csrf"),
-		"clientId": clientId,
+		"csrf":        c.Get("csrf"),
+		"clientId":    clientId,
 		"redirectUri": c.QueryParam("redirect_uri"),
-		"state": c.QueryParam("state"),
-		"error": errorMessage,
+		"state":       c.QueryParam("state"),
+		"error":       errorMessage,
 	})
 }
 
@@ -66,54 +60,34 @@ func (controller OAuthController) Login(c echo.Context) error {
 		return c.Redirect(http.StatusFound, url)
 	}
 
-	err = session.Save("userId", user.Id, c)
-
-	if err != nil {
-		return err
-	}
-
-	clientId, err := session.Get("clientId", c)
-
-	if err != nil {
-		return err
-	}
-
-	client, err := controller.getClient(clientId.(string))
+	client, err := controller.getClient(c.FormValue("client_id"))
 
 	if err != nil {
 		return err
 	}
 
 	// 権限委譲の画面
-	return c.Render(http.StatusOK, "agree.html", map[string]interface{}{
-		"csrf":       c.Get("csrf"),
-		"clientName": client.Name,
+	return c.Render(http.StatusOK, "confirm-authorize.html", map[string]interface{}{
+		"csrf":   c.Get("csrf"),
+		"client": client,
+		"userId": user.Id,
 	})
 }
 
 // 権限同意後
 func (controller OAuthController) Agree(c echo.Context) error {
-	clientId, err := session.Get("clientId", c)
+	clientId := c.FormValue("client_id")
+	userId := c.FormValue("user_id")
+
+	resource.AddAuthorizationListIfNeeded(clientId, userId)
+
+	client, err := controller.getClient(clientId)
 
 	if err != nil {
 		return err
 	}
 
-	userId, err := session.Get("userId", c)
-
-	if err != nil {
-		return err
-	}
-
-	resource.AddAllowListIfNeeded(clientId.(string), userId.(int))
-
-	client, err := controller.getClient(clientId.(string))
-
-	if err != nil {
-		return err
-	}
-
-	code := controller.issueAuthorizationCode(clientId.(string), userId.(int))
+	code := controller.issueAuthorizationCode(clientId, userId)
 
 	state, err := session.Get("state", c)
 
@@ -130,7 +104,9 @@ func (controller OAuthController) Agree(c echo.Context) error {
 	return c.Redirect(http.StatusFound, callbackUrl)
 }
 
+// 権限同意に拒否
 func (controller OAuthController) Deny(c echo.Context) error {
+
 	err := session.DestroySession(c)
 
 	if err != nil {
@@ -150,7 +126,7 @@ func (controller OAuthController) getClient(clientId string) (*resource.Client, 
 }
 
 // 認可コードを発行する
-func (controller OAuthController) issueAuthorizationCode(clientId string, userId int) *resource.AuthorizationCode {
+func (controller OAuthController) issueAuthorizationCode(clientId string, userId string) *resource.AuthorizationCode {
 	return resource.CreateNewAuthorizationCode(clientId, userId)
 }
 

@@ -16,7 +16,7 @@ func NewResourceController() ResourceController {
 }
 
 type ResourceResponse struct {
-	UserId     int    `json:"userId"`
+	UserId     string `json:"userId"`
 	Name       string `json:"name"`
 	Email      string `json:"email"`
 	PictureUrl string `json:"pictureUrl"`

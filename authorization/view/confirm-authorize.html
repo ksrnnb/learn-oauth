@@ -10,9 +10,11 @@
 
 <body>
     <h2>ほげアプリ 権限同意</h2>
-    <h5>「{{ .clientName }}」が以下の許可をリクエストしています。</h5>
+    <h5>「{{ .client.Name }}」が以下の許可をリクエストしています。</h5>
 
     <form action="/deny" method="POST">
+        <input type="hidden" name="user_id" value="{{ .userId }}">
+        <input type="hidden" name="client_id" value="{{ .client.ClientId }}">
         <input type="hidden" name="_token" value="{{ .csrf }}">
         <div style="margin-top: 30px;">
             <button type="submit">拒否</button>
@@ -20,6 +22,8 @@
     </form>
 
     <form action="/agree" method="POST">
+        <input type="hidden" name="user_id" value="{{ .userId }}">
+        <input type="hidden" name="client_id" value="{{ .client.ClientId }}">
         <input type="hidden" name="_token" value="{{ .csrf }}">
         <div style="margin-top: 30px;">
             <button type="submit">同意</button>
