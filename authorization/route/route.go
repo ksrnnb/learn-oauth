@@ -10,7 +10,6 @@ func SetRoute(e *echo.Echo) {
 	e.GET("/authorize", startOAuth)
 	e.POST("/authorize", authorize)
 	e.POST("/agree", agree)
-	e.GET("/deny", showDenyPage)
 	e.POST("/deny", deny)
 	e.POST("/token", token)
 	e.GET("/resource", resource)
@@ -38,12 +37,6 @@ func agree(c echo.Context) error {
 func deny(c echo.Context) error {
 	OAuthController := controller.NewOAuthController()
 	return OAuthController.Deny(c)
-}
-
-// 権限委譲に拒否した後の画面
-func showDenyPage(c echo.Context) error {
-	OAuthController := controller.NewOAuthController()
-	return OAuthController.ShowDenyPage(c)
 }
 
 // トークンエンドポイント

@@ -1,8 +1,10 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/ksrnnb/learn-oauth/authorization/resource"
 	"github.com/ksrnnb/learn-oauth/authorization/session"
@@ -105,18 +107,23 @@ func (controller OAuthController) Agree(c echo.Context) error {
 
 // 権限同意に拒否
 func (controller OAuthController) Deny(c echo.Context) error {
+	clientId := c.FormValue("client_id")
+	client, err := controller.getClient(clientId)
 
-	err := session.DestroySession(c)
+	if err != nil {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, "client id is invalid")
+	}
+
+	state, err := session.Get("state", c)
 
 	if err != nil {
 		return err
 	}
 
-	return c.Redirect(http.StatusFound, "/deny")
-}
-
-func (contrller OAuthController) ShowDenyPage(c echo.Context) error {
-	return c.Render(http.StatusOK, "deny.html", nil)
+	url := controller.buildErrorResponseUrl(client.RedirectUri, state.(string))
+	
+	fmt.Println(url)
+	return c.Redirect(http.StatusFound, url)
 }
 
 // client idからクライアントを探す
@@ -162,6 +169,27 @@ func (controller OAuthController) authorizationUrl(c echo.Context) string {
 	authorizeUrl.RawQuery = query.Encode()
 
 	return authorizeUrl.String()
+}
+
+// エラーレスポンスのリダイレクトURLを作成する
+// https://openid-foundation-japan.github.io/rfc6749.ja.html#rfc.section.4.1.2.1
+func (controller OAuthController) buildErrorResponseUrl(redirectUri string, state string) string {
+	urlSchemeSplitted := strings.Split(redirectUri, "://")
+	urlHostSplitted := strings.Split(urlSchemeSplitted[1], "/")
+
+	redirectUrl := &url.URL{
+		Scheme: urlSchemeSplitted[0],
+		Host: urlHostSplitted[0],
+		Path: urlHostSplitted[1],
+	}
+
+	query := redirectUrl.Query()
+	query.Set("error", "access_denied")
+	query.Set("state", state)
+
+	redirectUrl.RawQuery = query.Encode()
+
+	return redirectUrl.String()
 }
 
 // エラーページの表示
