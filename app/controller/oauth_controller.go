@@ -43,7 +43,6 @@ func (controller OAuthController) authorizationUrl(state string) string {
 	query.Set("client_id", os.Getenv("CLIENT_ID"))
 	query.Set("redirect_uri", os.Getenv("REDIRECT_URI"))
 	query.Set("state", state)
-	query.Set("scope", "profile")
 
 	authorizeUrl.RawQuery = query.Encode()
 	return authorizeUrl.String()
