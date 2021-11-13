@@ -47,7 +47,13 @@ func (controller TokenController) Token(c echo.Context) error {
 		return errorJSONResponse(c, http.StatusUnprocessableEntity, err.Error())
 	}
 
-	err = controller.validateCode(req)
+	storedCode, err := resource.FindAuthorizationCode(req.Code)
+
+	if err != nil {
+		return errorJSONResponse(c, http.StatusUnprocessableEntity, err.Error())
+	}
+
+	err = storedCode.Validate()
 
 	if err != nil {
 		return errorJSONResponse(c, http.StatusUnprocessableEntity, err.Error())
@@ -57,7 +63,7 @@ func (controller TokenController) Token(c echo.Context) error {
 		return errorJSONResponse(c, http.StatusUnprocessableEntity, "redirect uri is invalid")
 	}
 
-	accessToken := resource.CreateNewToken(client.ClientId)
+	accessToken := resource.CreateNewToken(client.ClientId, storedCode.UserId)
 	res := &TokenResponse{
 		AccessToken: accessToken.Token,
 		ExpiresIn:   accessToken.ExpiresIn,
@@ -65,21 +71,6 @@ func (controller TokenController) Token(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, res)
-}
-
-// 認可コードの有効性確認
-func (controller TokenController) validateCode(req *TokenRequest) error {
-	storedCode := resource.FindActiveAuthorizationCode(req.ClientId)
-
-	if storedCode == nil {
-		return errors.New("authorization code is not found")
-	}
-
-	if req.Code != storedCode.Code {
-		return errors.New("authorization code mismatch")
-	}
-
-	return nil
 }
 
 // クライアントを探す

@@ -4,6 +4,7 @@ import "errors"
 
 type User struct {
 	Id         int
+	Name       string
 	Email      string
 	Password   string
 	PictureUrl string
@@ -13,12 +14,14 @@ func usersInMemory() []*User {
 	return []*User{
 		{
 			Id:         1,
+			Name:       "テストユーザー1",
 			Email:      "test@example.com",
 			Password:   "3jd8Ge30Qcw2h",
 			PictureUrl: "https://hogehoge********.com/83hagbfahaaeg",
 		},
 		{
 			Id:         2,
+			Name:       "テストユーザー2",
 			Email:      "test2@example.com",
 			Password:   "09H$w63hdiHEDd",
 			PictureUrl: "https://hogehoge2********.com/83hagbfahaaeg",

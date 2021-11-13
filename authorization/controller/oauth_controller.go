@@ -97,7 +97,7 @@ func (controller OAuthController) Agree(c echo.Context) error {
 		return err
 	}
 
-	code := controller.issueAuthorizationCode(clientId.(string))
+	code := controller.issueAuthorizationCode(clientId.(string), userId.(int))
 
 	state, err := session.Get("state", c)
 
@@ -134,8 +134,8 @@ func (controller OAuthController) getClient(clientId string) (*resource.Client, 
 }
 
 // 認可コードを発行する
-func (controller OAuthController) issueAuthorizationCode(clientId string) *resource.AuthorizationCode {
-	return resource.CreateNewAuthorizationCode(clientId)
+func (controller OAuthController) issueAuthorizationCode(clientId string, userId int) *resource.AuthorizationCode {
+	return resource.CreateNewAuthorizationCode(clientId, userId)
 }
 
 // コールバックURLを作成する

@@ -13,6 +13,7 @@ func SetRoute(e *echo.Echo) {
 	e.GET("/deny", showDenyPage)
 	e.POST("/deny", deny)
 	e.POST("/token", token)
+	e.GET("/resource", resource)
 }
 
 // 認証画面を返す
@@ -49,4 +50,10 @@ func showDenyPage(c echo.Context) error {
 func token(c echo.Context) error {
 	tokenController := controller.NewTokenController()
 	return tokenController.Token(c)
+}
+
+// リソースを取得する
+func resource(c echo.Context) error {
+	resourceController := controller.NewResourceController()
+	return resourceController.Resource(c)
 }
