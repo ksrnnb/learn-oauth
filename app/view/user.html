@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ぴよぴよアプリ</title>
+</head>
+
+<body>
+    <h2>ぴよぴよアプリ</h2>
+    <p>ほげアプリから取得したユーザー情報</p>
+    <table border="1">
+        <thead>
+            <tr>
+                <th align="left">プロパティ</th>
+                <th align="left">値</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>ユーザーID</td>
+                <td>{{ .user.UserId }}</td>
+            </tr>
+            <tr>
+                <td>メールアドレス</td>
+                <td>{{ .user.Email }}</td>
+            </tr>
+            <tr>
+                <td>アバター画像URL</td>
+                <td>{{ .user.PictureUrl }}</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+
+</html>

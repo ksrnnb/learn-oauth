@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -63,6 +64,7 @@ type TokenResponse struct {
 	TokenType   string `json:"token_type"`
 }
 
+// 認可コードを受け取って、アクセストークン要求、リソース情報の取得。
 func (controller OAuthController) Callback(c echo.Context) error {
 	sessionState, err := session.Get("state", c)
 	if err != nil {
@@ -115,8 +117,60 @@ func (controller OAuthController) Callback(c echo.Context) error {
 		return err
 	}
 
-	fmt.Printf("%+v\n", tokenRes)
-	return nil
+	resourceRes, err := controller.getUserResource(tokenRes)
+
+	if err != nil {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while getting user resource")
+	}
+
+	fmt.Printf("%+v\n", resourceRes)
+	return c.Render(http.StatusOK, "user.html", map[string]interface{}{
+		"user": resourceRes,
+	})
+}
+
+type ResourceResponse struct{
+	UserId int `json:"userId"`
+	Name string `json:"name"`
+	Email string `json:"email"`
+	PictureUrl string `json:"pictureUrl"`
+}
+
+func (controller OAuthController) getUserResource(tokenRes TokenResponse) (*ResourceResponse, error) {
+	req, err := http.NewRequest("GET", resourceEndpoint(), nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer " + tokenRes.AccessToken)
+	httpClient := &http.Client{}
+
+	res, err := httpClient.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode < 200 || res.StatusCode > 300 {
+		return nil, errors.New("error while getting access token")
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+    if err != nil {
+        return nil, err
+    }
+	
+	var resourceRes *ResourceResponse
+	err = json.Unmarshal(body, &resourceRes)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resourceRes, nil
 }
 
 func (controller OAuthController) generateState() string {
@@ -125,6 +179,10 @@ func (controller OAuthController) generateState() string {
 
 func tokenEndpoint() string {
 	return "http://authorization:3000/token"
+}
+
+func resourceEndpoint() string {
+	return "http://authorization:3000/resource"
 }
 
 // エラーページの表示
