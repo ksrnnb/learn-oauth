@@ -8,12 +8,12 @@ import (
 )
 
 type AuthorizationCode struct {
-	Id        int
-	ClientId  string
-	UserId int
-	Code     string
-	IsUsed bool
-	ExpiresIn int
+	Id            int
+	ClientId      string
+	UserId        int
+	Code          string
+	IsUsed        bool
+	ExpiresIn     int
 	ExpiresInTime time.Time
 }
 
@@ -24,12 +24,12 @@ func CreateNewAuthorizationCode(clientId string, userId int) *AuthorizationCode 
 	code := helpers.RandomString(32)
 
 	newCode := &AuthorizationCode{
-		Id: len(authorizationCodeStore) + 1,
-		ClientId:  clientId,
-		UserId: userId,
-		Code:     code,
-		IsUsed: false,
-		ExpiresIn: 1 * 60, // 1分
+		Id:            len(authorizationCodeStore) + 1,
+		ClientId:      clientId,
+		UserId:        userId,
+		Code:          code,
+		IsUsed:        false,
+		ExpiresIn:     1 * 60, // 1分
 		ExpiresInTime: time.Now().Add(1 * time.Minute),
 	}
 

@@ -8,11 +8,11 @@ import (
 )
 
 type AccessToken struct {
-	ClientId  string
-	UserId int
-	Token     string
-	TokenType string
-	ExpiresIn int
+	ClientId      string
+	UserId        int
+	Token         string
+	TokenType     string
+	ExpiresIn     int
 	ExpiresInTime time.Time
 }
 
@@ -23,11 +23,11 @@ func CreateNewToken(clientId string, userId int) *AccessToken {
 	token := helpers.RandomString(32)
 
 	newToken := &AccessToken{
-		ClientId:  clientId,
-		UserId: userId,
-		Token:     token,
-		TokenType: "Bearer",
-		ExpiresIn: 3600, // 1時間後
+		ClientId:      clientId,
+		UserId:        userId,
+		Token:         token,
+		TokenType:     "Bearer",
+		ExpiresIn:     3600,                          // 1時間後
 		ExpiresInTime: time.Now().Add(1 * time.Hour), // 1時間後
 	}
 

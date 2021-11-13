@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -106,10 +105,10 @@ func (controller OAuthController) Callback(c echo.Context) error {
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
-    if err != nil {
-        return err
-    }
-	
+	if err != nil {
+		return err
+	}
+
 	var tokenRes TokenResponse
 	err = json.Unmarshal(body, &tokenRes)
 
@@ -123,16 +122,15 @@ func (controller OAuthController) Callback(c echo.Context) error {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while getting user resource")
 	}
 
-	fmt.Printf("%+v\n", resourceRes)
 	return c.Render(http.StatusOK, "user.html", map[string]interface{}{
 		"user": resourceRes,
 	})
 }
 
-type ResourceResponse struct{
-	UserId int `json:"userId"`
-	Name string `json:"name"`
-	Email string `json:"email"`
+type ResourceResponse struct {
+	UserId     int    `json:"userId"`
+	Name       string `json:"name"`
+	Email      string `json:"email"`
 	PictureUrl string `json:"pictureUrl"`
 }
 
@@ -143,7 +141,7 @@ func (controller OAuthController) getUserResource(tokenRes TokenResponse) (*Reso
 		return nil, err
 	}
 
-	req.Header.Set("Authorization", "Bearer " + tokenRes.AccessToken)
+	req.Header.Set("Authorization", "Bearer "+tokenRes.AccessToken)
 	httpClient := &http.Client{}
 
 	res, err := httpClient.Do(req)
@@ -159,10 +157,10 @@ func (controller OAuthController) getUserResource(tokenRes TokenResponse) (*Reso
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
-    if err != nil {
-        return nil, err
-    }
-	
+	if err != nil {
+		return nil, err
+	}
+
 	var resourceRes *ResourceResponse
 	err = json.Unmarshal(body, &resourceRes)
 

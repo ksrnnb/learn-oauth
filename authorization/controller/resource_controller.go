@@ -15,10 +15,10 @@ func NewResourceController() ResourceController {
 	return ResourceController{}
 }
 
-type ResourceResponse struct{
-	UserId int `json:"userId"`
-	Name string `json:"name"`
-	Email string `json:"email"`
+type ResourceResponse struct {
+	UserId     int    `json:"userId"`
+	Name       string `json:"name"`
+	Email      string `json:"email"`
 	PictureUrl string `json:"pictureUrl"`
 }
 
@@ -26,7 +26,7 @@ type ResourceResponse struct{
 func (controller ResourceController) Resource(c echo.Context) error {
 	authorizationHeader := c.Request().Header.Get("Authorization")
 	splitted := strings.Split(authorizationHeader, "Bearer ")
-	
+
 	if len(splitted) != 2 {
 		return errorJSONResponse(c, http.StatusUnprocessableEntity, "authorization header is invalid")
 	}
@@ -49,9 +49,9 @@ func (controller ResourceController) Resource(c echo.Context) error {
 	}
 
 	res := &ResourceResponse{
-		UserId: user.Id,
-		Name: user.Name,
-		Email: user.Email,
+		UserId:     user.Id,
+		Name:       user.Name,
+		Email:      user.Email,
 		PictureUrl: user.PictureUrl,
 	}
 
