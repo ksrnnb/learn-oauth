@@ -9,22 +9,6 @@ services:
       -  "${PWD}/app:/go/src"
     ports:
       - "3000:3000"
-    depends_on:
-      - app_db
-
-  app_db:
-    build: 
-      context: .
-      dockerfile: "${PWD}/docker/db/Dockerfile"
-    restart: always
-    ports:
-      - 3306:3306
-    volumes:
-      - "${PWD}/docker/db/app:/var/lib/mysql"
-    environment:
-      - MYSQL_DATABASE=app
-      - MYSQL_ROOT_PASSWORD=password
-      - TZ=Asia/Tokyo
 
   authorization:
     build:
@@ -35,19 +19,3 @@ services:
       -  "${PWD}/authorization:/go/src"
     ports:
       - "3001:3000"
-    depends_on:
-      - resource_db
-
-  resource_db:
-    build: 
-      context: .
-      dockerfile: "${PWD}/docker/db/Dockerfile"
-    restart: always
-    ports:
-      - 3307:3306
-    volumes:
-      - "${PWD}/docker/db/resource:/var/lib/mysql"
-    environment:
-      - MYSQL_DATABASE=resource
-      - MYSQL_ROOT_PASSWORD=password
-      - TZ=Asia/Tokyo

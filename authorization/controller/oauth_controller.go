@@ -17,22 +17,26 @@ func NewOAuthController() OAuthController {
 
 func (controlelr OAuthController) StartOAuth(c echo.Context) error {
 	clientId := c.QueryParam("client_id")
-	state := c.QueryParam("state")
 	client, err := controlelr.getClient(clientId)
 
 	if err != nil {
-		return err
+		return errorJSONResponse(c, http.StatusUnprocessableEntity, "client is not found")
 	}
 
-	// TODO: リダイレクトURIが一致することを確認
-	// TODO: エラーのリダイレクト
-	// https://openid-foundation-japan.github.io/rfc6749.ja.html#code-authz-error
+	if client.RedirectUri != c.QueryParam("redirect_uri") {
+		return errorJSONResponse(c, http.StatusUnprocessableEntity, "redirect uri is invalid")
+	}
 
 	err = session.Save("clientId", client.ClientId, c)
-	err = session.Save("state", state, c)
 
 	if err != nil {
-		return err
+		return errorJSONResponse(c, http.StatusInternalServerError, "error while storing session value")
+	}
+
+	err = session.Save("state", c.QueryParam("state"), c)
+
+	if err != nil {
+		return errorJSONResponse(c, http.StatusInternalServerError, "error while storing session value")
 	}
 
 	return c.Render(http.StatusOK, "authenticate.html", map[string]interface{}{

@@ -31,9 +31,6 @@ type TokenResponse struct {
 	TokenType   string `json:"token_type"`
 }
 
-// TODO: 基本的にはRFCみながら実装する
-// https://openid-foundation-japan.github.io/rfc6749.ja.html
-
 // トークンリクエスト
 func (controller TokenController) Token(c echo.Context) error {
 	var req *TokenRequest
