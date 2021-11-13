@@ -19,13 +19,13 @@ func SetRoute(e *echo.Echo) {
 // 認証画面を返す
 func startOAuth(c echo.Context) error {
 	OAuthController := controller.NewOAuthController()
-	return OAuthController.StartOAuth(c)
+	return OAuthController.ShowAuthorize(c)
 }
 
 // 認証
 func authorize(c echo.Context) error {
 	OAuthController := controller.NewOAuthController()
-	return OAuthController.Authorize(c)
+	return OAuthController.Login(c)
 }
 
 // 権限同意後

@@ -15,11 +15,13 @@ func NewOAuthController() OAuthController {
 	return OAuthController{}
 }
 
-func (controlelr OAuthController) StartOAuth(c echo.Context) error {
+// 認証画面のHTMLを返す
+func (controller OAuthController) ShowAuthorize(c echo.Context) error {
 	clientId := c.QueryParam("client_id")
-	client, err := controlelr.getClient(clientId)
+	client, err := controller.getClient(clientId)
 
 	if err != nil {
+		// TODO: リソースオーナーへのレスポンスになるから、HTMLにする
 		return errorJSONResponse(c, http.StatusUnprocessableEntity, "client is not found")
 	}
 
@@ -39,19 +41,29 @@ func (controlelr OAuthController) StartOAuth(c echo.Context) error {
 		return errorJSONResponse(c, http.StatusInternalServerError, "error while storing session value")
 	}
 
+	errorMessage, _ := session.Get("error", c)
+	session.Delete("error", c)
+	
 	return c.Render(http.StatusOK, "authenticate.html", map[string]interface{}{
 		"csrf": c.Get("csrf"),
+		"clientId": clientId,
+		"redirectUri": c.QueryParam("redirect_uri"),
+		"state": c.QueryParam("state"),
+		"error": errorMessage,
 	})
 }
 
-func (controller OAuthController) Authorize(c echo.Context) error {
+// 認証処理
+func (controller OAuthController) Login(c echo.Context) error {
 	email := c.FormValue("email")
 	password := c.FormValue("password")
 
 	user, err := resource.FindUser(email, password)
 
 	if err != nil {
-		return c.Redirect(http.StatusFound, "/authorize")
+		session.Save("error", "認証情報に誤りがあります", c)
+		url := controller.authorizationUrl(c)
+		return c.Redirect(http.StatusFound, url)
 	}
 
 	err = session.Save("userId", user.Id, c)
@@ -156,4 +168,23 @@ func (controller OAuthController) callbackUrl(client *resource.Client, code stri
 
 	callbackUrl.RawQuery = query.Encode()
 	return callbackUrl.String(), nil
+}
+
+// エラーが発生したとき、認可エンドポイントにリダイレクトするときのURLを作成する
+func (controller OAuthController) authorizationUrl(c echo.Context) string {
+	authorizeUrl := &url.URL{
+		Scheme: "http",
+		Host:   "localhost:3001",
+		Path:   "authorize",
+	}
+
+	query := authorizeUrl.Query()
+	query.Set("response_type", "code")
+	query.Set("client_id", c.FormValue("client_id"))
+	query.Set("redirect_uri", c.FormValue("redirect_uri"))
+	query.Set("state", c.FormValue("state"))
+
+	authorizeUrl.RawQuery = query.Encode()
+
+	return authorizeUrl.String()
 }

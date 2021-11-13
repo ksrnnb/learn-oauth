@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/ksrnnb/learn-oauth/authorization/resource"
-	"github.com/ksrnnb/learn-oauth/authorization/session"
 	"github.com/labstack/echo/v4"
 )
 
@@ -83,10 +82,6 @@ func (controller TokenController) getClient(clientId string, clientSecret string
 	}
 
 	return client, nil
-}
-
-func (controller TokenController) deleteCode(c echo.Context) {
-	session.Delete("code", c)
 }
 
 // エラーレスポンスを返す

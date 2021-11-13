@@ -46,6 +46,7 @@ func Delete(key interface{}, c echo.Context) error {
 	}
 
 	delete(sess.Values, key)
+	sess.Save(c.Request(), c.Response())
 	return nil
 }
 
