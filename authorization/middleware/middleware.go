@@ -21,6 +21,7 @@ func SetMiddleware(e *echo.Echo) {
 }
 
 // ここで指定したパスはcsrfトークンを利用しない
+// TODO: 使い方あっているか確認
 func skipper(c echo.Context) bool {
 	withoutCsrfPaths := []string{
 		"/token",

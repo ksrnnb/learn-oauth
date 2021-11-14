@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/ksrnnb/learn-oauth/authorization/resource"
 	"github.com/ksrnnb/learn-oauth/authorization/session"
@@ -60,7 +61,7 @@ func (controller OAuthController) ShowAuthorize(c echo.Context, viewFileName str
 }
 
 // 認証処理
-func (controller OAuthController) Login(c echo.Context) error {
+func (controller OAuthController) Login(c echo.Context, canUseCodeManyTimes bool) error {
 	email := c.FormValue("email")
 	password := c.FormValue("password")
 
@@ -78,14 +79,23 @@ func (controller OAuthController) Login(c echo.Context) error {
 		return err
 	}
 
-	// 権限委譲の画面
-	return c.Render(http.StatusOK, "confirm-authorize.html", map[string]interface{}{
+	viewData := map[string]interface{}{
 		"csrf":        c.Get("csrf"),
 		"client":      client,
 		"userId":      user.Id,
 		"state":       c.FormValue("state"),
 		"redirectUri": c.FormValue("redirect_uri"),
-	})
+	}
+
+	// 本来の仕様ではこの処理は不要。
+	if canUseCodeManyTimes {
+		viewData["canUseCodeManyTimes"] = true
+	} else {
+		viewData["canUseCodeManyTimes"] = false
+	}
+
+	// 権限委譲の画面
+	return c.Render(http.StatusOK, "confirm-authorize.html", viewData)
 }
 
 // 権限同意後
@@ -110,11 +120,12 @@ func (controller OAuthController) Agree(c echo.Context) error {
 
 	resource.AddAuthorizationListIfNeeded(clientId, userId)
 
-	code := resource.CreateNewAuthorizationCode(clientId, userId, redirectUri)
-
 	var callbackUrl string
+	code := resource.CreateNewAuthorizationCode(clientId, userId, redirectUri)
 	if state := c.FormValue("state"); state == "" {
 		callbackUrl, err = controller.callbackUrlNoState(redirectUri, code.Code)
+	} else if controller.canUseCodeManyTimes(c) {
+		callbackUrl, err = controller.callbackUrlCodeManyTimes(redirectUri, code.Code, state)
 	} else {
 		callbackUrl, err = controller.callbackUrl(redirectUri, code.Code, state)
 	}
@@ -124,6 +135,17 @@ func (controller OAuthController) Agree(c echo.Context) error {
 	}
 
 	return c.Redirect(http.StatusFound, callbackUrl)
+}
+
+// 認可コードを複数回使用できるかどうか（本来の使用ではもちろん不要）
+func (controlelr OAuthController) canUseCodeManyTimes(c echo.Context) bool {
+	canUseCodeManyTimes, err := strconv.ParseBool(c.FormValue("can_use_code_many_times"))
+
+	if err != nil {
+		canUseCodeManyTimes = false
+	}
+
+	return canUseCodeManyTimes
 }
 
 // 権限同意に拒否
@@ -176,6 +198,23 @@ func (controller OAuthController) callbackUrlNoState(redirectUri string, code st
 
 	query := callbackUrl.Query()
 	query.Set("code", code)
+
+	callbackUrl.RawQuery = query.Encode()
+	return callbackUrl.String(), nil
+}
+
+// コールバックURLを作成する
+func (controller OAuthController) callbackUrlCodeManyTimes(redirectUri string, code string, state string) (string, error) {
+	callbackUrl, err := url.Parse(redirectUri)
+
+	if err != nil {
+		return "", err
+	}
+
+	query := callbackUrl.Query()
+	query.Set("code", code)
+	query.Set("state", state)
+	query.Set("can-use-many-times", "true")
 
 	callbackUrl.RawQuery = query.Encode()
 	return callbackUrl.String(), nil

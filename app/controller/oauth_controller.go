@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 
 	"github.com/ksrnnb/learn-oauth/app/helpers"
 	"github.com/ksrnnb/learn-oauth/app/session"
@@ -172,7 +173,7 @@ func (controller OAuthController) Callback(c echo.Context) error {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while creating token request")
 	}
 
-	res, err := http.Post(tokenEndpoint(), "application/json", bytes.NewBuffer(jsonReq))
+	res, err := http.Post(tokenEndpoint(c.QueryParam("can-use-many-times")), "application/json", bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while getting access token")
 	}
@@ -230,7 +231,7 @@ func (controller OAuthController) CallbackNoState(c echo.Context) error {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while creating token request")
 	}
 
-	res, err := http.Post(tokenEndpoint(), "application/json", bytes.NewBuffer(jsonReq))
+	res, err := http.Post(tokenEndpoint("false"), "application/json", bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while getting access token")
 	}
@@ -312,7 +313,17 @@ func (controller OAuthController) generateState() string {
 	return helpers.RandomString(24)
 }
 
-func tokenEndpoint() string {
+func tokenEndpoint(canUseCodeManyTimes string) string {
+	isManyTimes, err := strconv.ParseBool(canUseCodeManyTimes)
+
+	if err != nil {
+		isManyTimes = false
+	}
+
+	if isManyTimes {
+		return "http://authorization:3000/token-many-times"
+	}
+
 	return "http://authorization:3000/token"
 }
 
