@@ -48,14 +48,11 @@ func (controller TokenController) Token(c echo.Context) error {
 		return errorJSONResponse(c, http.StatusUnprocessableEntity, err.Error())
 	}
 
-	err = storedCode.Validate()
+	err = storedCode.Validate(req.RedirectUri)
 
 	if err != nil {
 		return errorJSONResponse(c, http.StatusUnprocessableEntity, err.Error())
 	}
-
-	// TODO: 認可リクエスト時のリダイレクトURIと同じことを確かめる
-	// redirectUri := c.FormValue("redirect_uri")
 
 	accessToken := resource.CreateNewToken(client.ClientId, storedCode.UserId)
 	res := &TokenResponse{

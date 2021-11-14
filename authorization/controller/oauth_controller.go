@@ -110,8 +110,14 @@ func (controller OAuthController) Agree(c echo.Context) error {
 
 	resource.AddAuthorizationListIfNeeded(clientId, userId)
 
-	code := controller.issueAuthorizationCode(clientId, userId)
-	callbackUrl, err := controller.callbackUrl(redirectUri, code.Code, c.FormValue("state"))
+	code := resource.CreateNewAuthorizationCode(clientId, userId, redirectUri)
+
+	var callbackUrl string
+	if state := c.FormValue("state"); state == "" {
+		callbackUrl, err = controller.callbackUrlNoState(redirectUri, code.Code)
+	} else {
+		callbackUrl, err = controller.callbackUrl(redirectUri, code.Code, state)
+	}
 
 	if err != nil {
 		return err
@@ -144,11 +150,6 @@ func (controller OAuthController) getClient(clientId string) (*resource.Client, 
 	return resource.FindClient(clientId)
 }
 
-// 認可コードを発行する
-func (controller OAuthController) issueAuthorizationCode(clientId string, userId string) *resource.AuthorizationCode {
-	return resource.CreateNewAuthorizationCode(clientId, userId)
-}
-
 // コールバックURLを作成する
 func (controller OAuthController) callbackUrl(redirectUri string, code string, state string) (string, error) {
 	callbackUrl, err := url.Parse(redirectUri)
@@ -160,6 +161,21 @@ func (controller OAuthController) callbackUrl(redirectUri string, code string, s
 	query := callbackUrl.Query()
 	query.Set("code", code)
 	query.Set("state", state)
+
+	callbackUrl.RawQuery = query.Encode()
+	return callbackUrl.String(), nil
+}
+
+// state無し コールバックURLを作成する
+func (controller OAuthController) callbackUrlNoState(redirectUri string, code string) (string, error) {
+	callbackUrl, err := url.Parse(redirectUri)
+
+	if err != nil {
+		return "", err
+	}
+
+	query := callbackUrl.Query()
+	query.Set("code", code)
 
 	callbackUrl.RawQuery = query.Encode()
 	return callbackUrl.String(), nil

@@ -182,7 +182,7 @@ func (controller OAuthController) CallbackNoState(c echo.Context) error {
 	req := &TokenRequest{
 		GrantType:    "authorization_code",
 		Code:         code,
-		RedirectUri:  os.Getenv("REDIRECT_URI"),
+		RedirectUri:  os.Getenv("REDIRECT_URI_NO_STATE"),
 		ClientId:     os.Getenv("CLIENT_ID"),
 		ClientSecret: os.Getenv("CLIENT_SECRET"),
 	}
