@@ -48,3 +48,16 @@ func FindUser(email string, password string) (*User, error) {
 
 	return nil, errors.New("user not found")
 }
+
+// ユーザーの存在有無チェック
+func ExistsUser(userId string) bool {
+	users := usersInMemory()
+
+	for _, user := range users {
+		if user.Id == userId {
+			return true
+		}
+	}
+
+	return false
+} 

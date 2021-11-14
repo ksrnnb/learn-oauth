@@ -20,7 +20,21 @@ func NewOAuthController() OAuthController {
 	return OAuthController{}
 }
 
-func (controller OAuthController) StartOAuth(c echo.Context) error {
+// OAuth連携開始画面
+func (controller OAuthController) ShowNormalStart(c echo.Context) error {
+	return c.Render(http.StatusOK, "start-normal.html", map[string]interface{}{
+		"csrf": c.Get("csrf"),
+	})
+}
+
+// OAuth連携開始画面
+func (controller OAuthController) ShowNoStateStart(c echo.Context) error {
+	return c.Render(http.StatusOK, "start-no-state.html", map[string]interface{}{
+		"csrf": c.Get("csrf"),
+	})
+}
+
+func (controller OAuthController) StartOAuthNormal(c echo.Context) error {
 	state := controller.generateState()
 	err := session.Save("state", state, c)
 
@@ -31,6 +45,12 @@ func (controller OAuthController) StartOAuth(c echo.Context) error {
 	return c.Redirect(http.StatusFound, controller.authorizationUrl(state))
 }
 
+// state無し
+func (controller OAuthController) StartOAuthNoState(c echo.Context) error {
+	return c.Redirect(http.StatusFound, controller.authorizationUrlNoState())
+}
+
+// 認可リクエストのURLを作成する
 func (controller OAuthController) authorizationUrl(state string) string {
 	authorizeUrl := &url.URL{
 		Scheme: "http",
@@ -43,6 +63,23 @@ func (controller OAuthController) authorizationUrl(state string) string {
 	query.Set("client_id", os.Getenv("CLIENT_ID"))
 	query.Set("redirect_uri", os.Getenv("REDIRECT_URI"))
 	query.Set("state", state)
+
+	authorizeUrl.RawQuery = query.Encode()
+	return authorizeUrl.String()
+}
+
+// state無し 認可リクエストのURLを作成する
+func (controller OAuthController) authorizationUrlNoState() string {
+	authorizeUrl := &url.URL{
+		Scheme: "http",
+		Host:   "localhost:3001",
+		Path:   "authorize",
+	}
+
+	query := authorizeUrl.Query()
+	query.Set("response_type", "code")
+	query.Set("client_id", os.Getenv("CLIENT_ID"))
+	query.Set("redirect_uri", os.Getenv("REDIRECT_URI_NO_STATE"))
 
 	authorizeUrl.RawQuery = query.Encode()
 	return authorizeUrl.String()
@@ -76,6 +113,64 @@ func (controller OAuthController) Callback(c echo.Context) error {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "state doesn't mismatch")
 	}
 
+	errorCode := c.QueryParam("error")
+	
+	if errorCode != "" {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, errorCode)
+	}
+
+	code := c.QueryParam("code")
+
+	req := &TokenRequest{
+		GrantType:    "authorization_code",
+		Code:         code,
+		RedirectUri:  os.Getenv("REDIRECT_URI"),
+		ClientId:     os.Getenv("CLIENT_ID"),
+		ClientSecret: os.Getenv("CLIENT_SECRET"),
+	}
+
+	jsonReq, err := json.Marshal(req)
+
+	if err != nil {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while creating token request")
+	}
+
+	res, err := http.Post(tokenEndpoint(), "application/json", bytes.NewBuffer(jsonReq))
+	if err != nil {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while getting access token")
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode < 200 || res.StatusCode > 300 {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while getting access token")
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	var tokenRes TokenResponse
+	err = json.Unmarshal(body, &tokenRes)
+
+	if err != nil {
+		return err
+	}
+
+	resourceRes, err := controller.getUserResource(tokenRes)
+
+	if err != nil {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while getting user resource")
+	}
+
+	return c.Render(http.StatusOK, "user.html", map[string]interface{}{
+		"user": resourceRes,
+	})
+}
+
+// state無しの場合のコールバック
+func (controller OAuthController) CallbackNoState(c echo.Context) error {
 	errorCode := c.QueryParam("error")
 	
 	if errorCode != "" {

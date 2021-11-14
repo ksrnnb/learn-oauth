@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 
@@ -29,17 +30,17 @@ func (controller OAuthController) ShowAuthorize(c echo.Context) error {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "client is not found")
 	}
 
+	if !client.HasRedirectUri(c.QueryParam("redirect_uri")) {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, "redirect uri is invalid")
+	}
+
 	if c.QueryParam("response_type") != "code" {
 		url := controller.buildErrorResponseUrl(
-			client.RedirectUri,
+			c.QueryParam("redirect_uri"),
 			c.QueryParam("state"),
 			UNSUPPORTED_RESPONSE_TYPE)
 
 		return c.Redirect(http.StatusFound, url)
-	}
-
-	if client.RedirectUri != c.QueryParam("redirect_uri") {
-		return renderErrorPage(c, http.StatusUnprocessableEntity, "redirect uri is invalid")
 	}
 
 	if err != nil {
@@ -83,6 +84,7 @@ func (controller OAuthController) Login(c echo.Context) error {
 		"client": client,
 		"userId": user.Id,
 		"state": c.FormValue("state"),
+		"redirectUri": c.FormValue("redirect_uri"),
 	})
 }
 
@@ -90,17 +92,26 @@ func (controller OAuthController) Login(c echo.Context) error {
 func (controller OAuthController) Agree(c echo.Context) error {
 	clientId := c.FormValue("client_id")
 	userId := c.FormValue("user_id")
-
-	resource.AddAuthorizationListIfNeeded(clientId, userId)
+	redirectUri := c.FormValue("redirect_uri")
 
 	client, err := controller.getClient(clientId)
-
+	
 	if err != nil {
 		return err
 	}
 
+	if !client.HasRedirectUri(redirectUri) {
+		return errors.New("redirect uri is invalid")
+	}
+
+	if !resource.ExistsUser(userId) {
+		return errors.New("user is not found")
+	}
+
+	resource.AddAuthorizationListIfNeeded(clientId, userId)
+
 	code := controller.issueAuthorizationCode(clientId, userId)
-	callbackUrl, err := controller.callbackUrl(client, code.Code, c.FormValue("state"))
+	callbackUrl, err := controller.callbackUrl(redirectUri, code.Code, c.FormValue("state"))
 
 	if err != nil {
 		return err
@@ -112,12 +123,18 @@ func (controller OAuthController) Agree(c echo.Context) error {
 // 権限同意に拒否
 func (controller OAuthController) Deny(c echo.Context) error {
 	clientId := c.FormValue("client_id")
+	redirectUri := c.FormValue("redirect_uri")
 	client, err := controller.getClient(clientId)
 
 	if err != nil {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "client id is invalid")
 	}
-	url := controller.buildErrorResponseUrl(client.RedirectUri, c.FormValue("state"), ACCESS_DENIED)
+
+	if !client.HasRedirectUri(redirectUri) {
+		return errors.New("redirect uri is invalid")
+	}
+
+	url := controller.buildErrorResponseUrl(redirectUri, c.FormValue("state"), ACCESS_DENIED)
 	
 	return c.Redirect(http.StatusFound, url)
 }
@@ -133,8 +150,8 @@ func (controller OAuthController) issueAuthorizationCode(clientId string, userId
 }
 
 // コールバックURLを作成する
-func (controller OAuthController) callbackUrl(client *resource.Client, code string, state string) (string, error) {
-	callbackUrl, err := url.Parse(client.RedirectUri)
+func (controller OAuthController) callbackUrl(redirectUri string, code string, state string) (string, error) {
+	callbackUrl, err := url.Parse(redirectUri)
 
 	if err != nil {
 		return "", err

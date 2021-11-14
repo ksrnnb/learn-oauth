@@ -12,8 +12,7 @@ func NewHomeController() HomeController {
 	return HomeController{}
 }
 
+// ホーム画面
 func (h HomeController) Home(c echo.Context) error {
-	return c.Render(http.StatusOK, "home.html", map[string]interface{}{
-		"csrf": c.Get("csrf"),
-	})
+	return c.Render(http.StatusOK, "home.html", nil)
 }

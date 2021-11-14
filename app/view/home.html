@@ -10,10 +10,14 @@
 
 <body>
     <h2>ぴよぴよアプリ</h2>
-    <form action="/" method="POST">
-        <input type="hidden" name="_token" value="{{ .csrf }}">
-        <button type="submit">ほげアプリと連携する</button>
-    </form>
+    <ul>
+        <li>
+            <a href="/authorize/normal">State有り（安全）</a>
+        </li>
+        <li>
+            <a href="/authorize/no-state">State無し（脆弱）</a>
+        </li>
+    </ul>
 </body>
 
 </html>

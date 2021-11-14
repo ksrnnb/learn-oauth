@@ -6,7 +6,7 @@ type Client struct {
 	Name         string
 	ClientId     string
 	ClientSecret string
-	RedirectUri  string
+	RedirectUris  []string
 }
 
 func clientsInMemory() []*Client {
@@ -15,13 +15,18 @@ func clientsInMemory() []*Client {
 			Name:         "ぴよぴよアプリ",
 			ClientId:     "abcde12345",
 			ClientSecret: "abcde12345secert",
-			RedirectUri:  "http://localhost:3000/callback",
+			RedirectUris:  []string{
+				"http://localhost:3000/callback",
+				"http://localhost:3000/callback-no-state",
+			},
 		},
 		{
 			Name:         "dummy",
 			ClientId:     "dummy",
 			ClientSecret: "dummy",
-			RedirectUri:  "dummy",
+			RedirectUris:  []string{
+				"dummy",
+			},
 		},
 	}
 }
@@ -38,4 +43,26 @@ func FindClient(clientId string) (*Client, error) {
 	}
 
 	return nil, errors.New("client not found")
+}
+
+// 引数のリダイレクトURIが設定されているかどうか
+func (c Client)HasRedirectUri(uri string) bool {
+	for _, u := range c.RedirectUris {
+		if u == uri {
+			return true
+		}
+	}
+
+	return false
+}
+
+// クライアントの存在有無
+func ExistsClient(clientId string) bool {
+	for _, client := range clientsInMemory() {
+		if client.ClientId == clientId {
+			return true
+		}
+	}
+
+	return false
 }

@@ -54,9 +54,8 @@ func (controller TokenController) Token(c echo.Context) error {
 		return errorJSONResponse(c, http.StatusUnprocessableEntity, err.Error())
 	}
 
-	if client.RedirectUri != req.RedirectUri {
-		return errorJSONResponse(c, http.StatusUnprocessableEntity, "redirect uri is invalid")
-	}
+	// TODO: 認可リクエスト時のリダイレクトURIと同じことを確かめる
+	// redirectUri := c.FormValue("redirect_uri")
 
 	accessToken := resource.CreateNewToken(client.ClientId, storedCode.UserId)
 	res := &TokenResponse{
