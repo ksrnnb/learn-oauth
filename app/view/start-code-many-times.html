@@ -10,8 +10,8 @@
 
 <body>
     <h2>ぴよぴよアプリ</h2>
-    <p>通常</p>
-    <form action="/authorize/normal" method="POST">
+    <p>複数回使用可能な認可コードを発行</p>
+    <form action="/authorize/code-many-times" method="POST">
         <input type="hidden" name="_token" value="{{ .csrf }}">
         <button type="submit">ほげアプリと連携する</button>
     </form>

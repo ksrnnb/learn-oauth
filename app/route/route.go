@@ -10,8 +10,10 @@ func SetRoute(e *echo.Echo) {
 	e.GET("/", home)
 	e.GET("/authorize/normal", showNormalStart)
 	e.GET("/authorize/no-state", showNoStateStart)
+	e.GET("/authorize/code-many-times", showCodeManyTimes)
 	e.POST("/authorize/normal", startOAuthNormal)
 	e.POST("/authorize/no-state", startOAuthNoState)
+	e.POST("/authorize/code-many-times", startOAuthCodeManyTimes)
 	e.GET("/callback", callback)
 	e.GET("/callback-no-state", callbackNoState)
 }
@@ -31,6 +33,11 @@ func showNoStateStart(c echo.Context) error {
 	return OAuthController.ShowNoStateStart(c)
 }
 
+func showCodeManyTimes(c echo.Context) error {
+	OAuthController := controller.NewOAuthController()
+	return OAuthController.ShowCodeManyTimes(c)
+}
+
 func startOAuthNormal(c echo.Context) error {
 	OAuthController := controller.NewOAuthController()
 	return OAuthController.StartOAuthNormal(c)
@@ -39,6 +46,11 @@ func startOAuthNormal(c echo.Context) error {
 func startOAuthNoState(c echo.Context) error {
 	OAuthController := controller.NewOAuthController()
 	return OAuthController.StartOAuthNoState(c)
+}
+
+func startOAuthCodeManyTimes(c echo.Context) error {
+	OAuthController := controller.NewOAuthController()
+	return OAuthController.StartOAuthCodeManyTimes(c)
 }
 
 func callback(c echo.Context) error {
