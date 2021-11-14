@@ -46,7 +46,7 @@ func FindClient(clientId string) (*Client, error) {
 }
 
 // 引数のリダイレクトURIが設定されているかどうか
-func (c Client)HasRedirectUri(uri string) bool {
+func (c Client) HasRedirectUri(uri string) bool {
 	for _, u := range c.RedirectUris {
 		if u == uri {
 			return true
