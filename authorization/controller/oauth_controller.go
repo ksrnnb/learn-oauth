@@ -110,7 +110,7 @@ func (controller OAuthController) Agree(c echo.Context) error {
 
 	resource.AddAuthorizationListIfNeeded(clientId, userId)
 
-	code := controller.issueAuthorizationCode(clientId, userId)
+	code := resource.CreateNewAuthorizationCode(clientId, userId, redirectUri)
 	callbackUrl, err := controller.callbackUrl(redirectUri, code.Code, c.FormValue("state"))
 
 	if err != nil {
@@ -142,11 +142,6 @@ func (controller OAuthController) Deny(c echo.Context) error {
 // client idからクライアントを探す
 func (controller OAuthController) getClient(clientId string) (*resource.Client, error) {
 	return resource.FindClient(clientId)
-}
-
-// 認可コードを発行する
-func (controller OAuthController) issueAuthorizationCode(clientId string, userId string) *resource.AuthorizationCode {
-	return resource.CreateNewAuthorizationCode(clientId, userId)
 }
 
 // コールバックURLを作成する

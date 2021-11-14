@@ -11,6 +11,7 @@ type AuthorizationCode struct {
 	Id            int
 	ClientId      string
 	UserId        string
+	RedirectUri   string
 	Code          string
 	IsUsed        bool
 	ExpiresIn     int
@@ -20,13 +21,14 @@ type AuthorizationCode struct {
 var authorizationCodeStore []*AuthorizationCode
 
 // 認可コードを作成する
-func CreateNewAuthorizationCode(clientId string, userId string) *AuthorizationCode {
+func CreateNewAuthorizationCode(clientId, userId, redirectUri string) *AuthorizationCode {
 	code := helpers.RandomString(32)
 
 	newCode := &AuthorizationCode{
 		Id:            len(authorizationCodeStore) + 1,
 		ClientId:      clientId,
 		UserId:        userId,
+		RedirectUri:   redirectUri,
 		Code:          code,
 		IsUsed:        false,
 		ExpiresIn:     1 * 60, // 1分
@@ -57,7 +59,7 @@ func (c AuthorizationCode) Expired() bool {
 }
 
 func (code AuthorizationCode) Validate() error {
-	// TODO: 2回以上使用された場合はトークンを無効化
+	// TODO: 2回以上使用された場合はトークンを無効化(should)
 	// https://openid-foundation-japan.github.io/rfc6749.ja.html#code-authz-resp
 	if code.IsUsed || code.Expired() {
 		return errors.New("invalid code")
