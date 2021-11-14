@@ -14,17 +14,17 @@ func usersInMemory() []*User {
 	return []*User{
 		{
 			Id:         "ke561cwh1o943",
-			Name:       "テストユーザー1",
+			Name:       "テストユーザー",
 			Email:      "test@example.com",
 			Password:   "3jd8Ge30Qcw2h",
 			PictureUrl: "https://hogehoge********.com/83hagbfahaaeg",
 		},
 		{
 			Id:         "9dm40h2kd7vgzo",
-			Name:       "テストユーザー2",
-			Email:      "test2@example.com",
+			Name:       "攻撃者",
+			Email:      "attacker@example.com",
 			Password:   "09H$w63hdiHEDd",
-			PictureUrl: "https://hogehoge2********.com/83hagbfahaaeg",
+			PictureUrl: "https://attacker********.com/83hagbfahaaeg",
 		},
 	}
 }
@@ -60,4 +60,4 @@ func ExistsUser(userId string) bool {
 	}
 
 	return false
-} 
+}

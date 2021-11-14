@@ -13,7 +13,7 @@ import (
 type OAuthController struct{}
 
 const (
-	ACCESS_DENIED = "access_denied"
+	ACCESS_DENIED             = "access_denied"
 	UNSUPPORTED_RESPONSE_TYPE = "unsupported_response_type"
 )
 
@@ -22,7 +22,7 @@ func NewOAuthController() OAuthController {
 }
 
 // 認証画面のHTMLを返す
-func (controller OAuthController) ShowAuthorize(c echo.Context) error {
+func (controller OAuthController) ShowAuthorize(c echo.Context, viewFileName string) error {
 	clientId := c.QueryParam("client_id")
 	client, err := controller.getClient(clientId)
 
@@ -50,7 +50,7 @@ func (controller OAuthController) ShowAuthorize(c echo.Context) error {
 	errorMessage, _ := session.Get("error", c)
 	session.Delete("error", c)
 
-	return c.Render(http.StatusOK, "authenticate.html", map[string]interface{}{
+	return c.Render(http.StatusOK, viewFileName+".html", map[string]interface{}{
 		"csrf":        c.Get("csrf"),
 		"clientId":    clientId,
 		"redirectUri": c.QueryParam("redirect_uri"),
@@ -80,10 +80,10 @@ func (controller OAuthController) Login(c echo.Context) error {
 
 	// 権限委譲の画面
 	return c.Render(http.StatusOK, "confirm-authorize.html", map[string]interface{}{
-		"csrf":   c.Get("csrf"),
-		"client": client,
-		"userId": user.Id,
-		"state": c.FormValue("state"),
+		"csrf":        c.Get("csrf"),
+		"client":      client,
+		"userId":      user.Id,
+		"state":       c.FormValue("state"),
 		"redirectUri": c.FormValue("redirect_uri"),
 	})
 }
@@ -95,7 +95,7 @@ func (controller OAuthController) Agree(c echo.Context) error {
 	redirectUri := c.FormValue("redirect_uri")
 
 	client, err := controller.getClient(clientId)
-	
+
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (controller OAuthController) Deny(c echo.Context) error {
 	}
 
 	url := controller.buildErrorResponseUrl(redirectUri, c.FormValue("state"), ACCESS_DENIED)
-	
+
 	return c.Redirect(http.StatusFound, url)
 }
 

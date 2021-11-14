@@ -8,6 +8,7 @@ import (
 func SetRoute(e *echo.Echo) {
 	e.Renderer = newTemplate()
 	e.GET("/authorize", startOAuth)
+	e.GET("/authorize-attacker", startOAuthAttacker)
 	e.POST("/authorize", authorize)
 	e.POST("/agree", agree)
 	e.POST("/deny", deny)
@@ -18,7 +19,13 @@ func SetRoute(e *echo.Echo) {
 // 認証画面を返す
 func startOAuth(c echo.Context) error {
 	OAuthController := controller.NewOAuthController()
-	return OAuthController.ShowAuthorize(c)
+	return OAuthController.ShowAuthorize(c, "authenticate")
+}
+
+// 攻撃者の認証画面を返す
+func startOAuthAttacker(c echo.Context) error {
+	OAuthController := controller.NewOAuthController()
+	return OAuthController.ShowAuthorize(c, "authenticate-attacker")
 }
 
 // 認証
