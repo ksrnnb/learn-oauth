@@ -15,6 +15,15 @@
         .error {
             color: red;
         }
+
+        .flex {
+            display: flex;
+        }
+
+        .col {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
     </style>
     <title>ほげアプリ</title>
 </head>
@@ -29,13 +38,32 @@
         <input type="hidden" name="client_id" value="{{ .clientId }}">
         <input type="hidden" name="redirect_uri" value="{{ .redirectUri }}">
         <input type="hidden" name="state" value="{{ .state }}">
-        <div>
-            <label for="email" style="display: block">メールアドレス</label>
-            <input type="email" name="email" id="email" value="test@example.com">
-        </div>
-        <div>
-            <label for="password" style="display: block">パスワード</label>
-            <input type="password" name="password" value="3jd8Ge30Qcw2h">
+        <div class="flex">
+            <div class="col">
+                <div>
+                    <label for="email" style="display: block">メールアドレス</label>
+                    <input type="email" name="email" id="email" value="test@example.com">
+                </div>
+                <div>
+                    <label for="password" style="display: block">パスワード</label>
+                    <input type="password" name="password" value="3jd8Ge30Qcw2h">
+                </div>
+            </div>
+            <div class="col">
+                <h3 style="margin-top: 0px;">攻撃者のログイン情報</h3>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>メールアドレス</td>
+                            <td>attacker@example.com</td>
+                        </tr>
+                        <tr>
+                            <td>パスワード</td>
+                            <td>09H$w63hdiHEDd</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <div style="margin-top: 30px;">
             <button type="submit">認証</button>
