@@ -76,6 +76,15 @@ func (code AuthorizationCode) Validate(redirectUri string) error {
 	return nil
 }
 
+// リダイレクトURIの検証をしない場合
+func (code AuthorizationCode) ValidateWithoutRedirectUri() error {
+	if code.IsUsed || code.Expired() {
+		return errors.New("invalid code")
+	}
+
+	return nil
+}
+
 // 認可コードを複数回利用可能な場合
 func (code AuthorizationCode) ValidateCanUseManyTimes(redirectUri string) error {
 	if code.Expired() {
