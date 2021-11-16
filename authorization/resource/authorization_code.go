@@ -31,8 +31,8 @@ func CreateNewAuthorizationCode(clientId, userId, redirectUri string) *Authoriza
 		RedirectUri:   redirectUri,
 		Code:          code,
 		IsUsed:        false,
-		ExpiresIn:     1 * 60, // 1分
-		ExpiresInTime: time.Now().Add(1 * time.Minute),
+		ExpiresIn:     5 * 60, // 5分
+		ExpiresInTime: time.Now().Add(5 * time.Minute),
 	}
 
 	authorizationCodeStore = append(authorizationCodeStore, newCode)
