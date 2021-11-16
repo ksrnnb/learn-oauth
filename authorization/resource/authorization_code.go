@@ -58,10 +58,27 @@ func (c AuthorizationCode) Expired() bool {
 	return time.Now().After(c.ExpiresInTime)
 }
 
+func (c *AuthorizationCode) Use() {
+	c.IsUsed = true
+}
+
 func (code AuthorizationCode) Validate(redirectUri string) error {
 	// TODO: 2回以上使用された場合はトークンを無効化(should)
 	// https://openid-foundation-japan.github.io/rfc6749.ja.html#code-authz-resp
 	if code.IsUsed || code.Expired() {
+		return errors.New("invalid code")
+	}
+
+	if code.RedirectUri != redirectUri {
+		return errors.New("redirect uri is invalid")
+	}
+
+	return nil
+}
+
+// 認可コードを複数回利用可能な場合
+func (code AuthorizationCode) ValidateCanUseManyTimes(redirectUri string) error {
+	if code.Expired() {
 		return errors.New("invalid code")
 	}
 

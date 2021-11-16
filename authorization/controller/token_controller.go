@@ -30,7 +30,7 @@ type TokenResponse struct {
 }
 
 // トークンリクエスト
-func (controller TokenController) Token(c echo.Context) error {
+func (controller TokenController) Token(c echo.Context, isManyTimes bool) error {
 	var req *TokenRequest
 	if err := c.Bind(&req); err != nil {
 		return errorJSONResponse(c, http.StatusInternalServerError, "error while binding request body")
@@ -48,11 +48,18 @@ func (controller TokenController) Token(c echo.Context) error {
 		return errorJSONResponse(c, http.StatusUnprocessableEntity, err.Error())
 	}
 
-	err = storedCode.Validate(req.RedirectUri)
+	if isManyTimes {
+		// 認可コードを複数回利用可能な場合
+		err = storedCode.ValidateCanUseManyTimes(req.RedirectUri)
+	} else {
+		err = storedCode.Validate(req.RedirectUri)
+	}
 
 	if err != nil {
 		return errorJSONResponse(c, http.StatusUnprocessableEntity, err.Error())
 	}
+
+	storedCode.Use()
 
 	accessToken := resource.CreateNewToken(client.ClientId, storedCode.UserId)
 	res := &TokenResponse{

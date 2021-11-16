@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 
 	"github.com/ksrnnb/learn-oauth/app/helpers"
 	"github.com/ksrnnb/learn-oauth/app/session"
@@ -34,6 +35,13 @@ func (controller OAuthController) ShowNoStateStart(c echo.Context) error {
 	})
 }
 
+// OAuth連携開始画面
+func (controller OAuthController) ShowCodeManyTimes(c echo.Context) error {
+	return c.Render(http.StatusOK, "start-code-many-times.html", map[string]interface{}{
+		"csrf": c.Get("csrf"),
+	})
+}
+
 func (controller OAuthController) StartOAuthNormal(c echo.Context) error {
 	state := controller.generateState()
 	err := session.Save("state", state, c)
@@ -48,6 +56,18 @@ func (controller OAuthController) StartOAuthNormal(c echo.Context) error {
 // state無し
 func (controller OAuthController) StartOAuthNoState(c echo.Context) error {
 	return c.Redirect(http.StatusFound, controller.authorizationUrlNoState())
+}
+
+// state無し
+func (controller OAuthController) StartOAuthCodeManyTimes(c echo.Context) error {
+	state := controller.generateState()
+	err := session.Save("state", state, c)
+
+	if err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusFound, controller.authorizationUrlCodeManyTimes(state))
 }
 
 // 認可リクエストのURLを作成する
@@ -73,13 +93,31 @@ func (controller OAuthController) authorizationUrlNoState() string {
 	authorizeUrl := &url.URL{
 		Scheme: "http",
 		Host:   "localhost:3001",
-		Path:   "authorize",
+		Path:   "authorize-attacker",
 	}
 
 	query := authorizeUrl.Query()
 	query.Set("response_type", "code")
 	query.Set("client_id", os.Getenv("CLIENT_ID"))
 	query.Set("redirect_uri", os.Getenv("REDIRECT_URI_NO_STATE"))
+
+	authorizeUrl.RawQuery = query.Encode()
+	return authorizeUrl.String()
+}
+
+// 認可リクエストのURLを作成する
+func (controller OAuthController) authorizationUrlCodeManyTimes(state string) string {
+	authorizeUrl := &url.URL{
+		Scheme: "http",
+		Host:   "localhost:3001",
+		Path:   "authorize-code-many-times",
+	}
+
+	query := authorizeUrl.Query()
+	query.Set("response_type", "code")
+	query.Set("client_id", os.Getenv("CLIENT_ID"))
+	query.Set("redirect_uri", os.Getenv("REDIRECT_URI"))
+	query.Set("state", state)
 
 	authorizeUrl.RawQuery = query.Encode()
 	return authorizeUrl.String()
@@ -114,7 +152,7 @@ func (controller OAuthController) Callback(c echo.Context) error {
 	}
 
 	errorCode := c.QueryParam("error")
-	
+
 	if errorCode != "" {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, errorCode)
 	}
@@ -135,7 +173,7 @@ func (controller OAuthController) Callback(c echo.Context) error {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while creating token request")
 	}
 
-	res, err := http.Post(tokenEndpoint(), "application/json", bytes.NewBuffer(jsonReq))
+	res, err := http.Post(tokenEndpoint(c.QueryParam("can-use-many-times")), "application/json", bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while getting access token")
 	}
@@ -172,7 +210,7 @@ func (controller OAuthController) Callback(c echo.Context) error {
 // state無しの場合のコールバック
 func (controller OAuthController) CallbackNoState(c echo.Context) error {
 	errorCode := c.QueryParam("error")
-	
+
 	if errorCode != "" {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, errorCode)
 	}
@@ -193,7 +231,7 @@ func (controller OAuthController) CallbackNoState(c echo.Context) error {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while creating token request")
 	}
 
-	res, err := http.Post(tokenEndpoint(), "application/json", bytes.NewBuffer(jsonReq))
+	res, err := http.Post(tokenEndpoint("false"), "application/json", bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while getting access token")
 	}
@@ -275,7 +313,17 @@ func (controller OAuthController) generateState() string {
 	return helpers.RandomString(24)
 }
 
-func tokenEndpoint() string {
+func tokenEndpoint(canUseCodeManyTimes string) string {
+	isManyTimes, err := strconv.ParseBool(canUseCodeManyTimes)
+
+	if err != nil {
+		isManyTimes = false
+	}
+
+	if isManyTimes {
+		return "http://authorization:3000/token-many-times"
+	}
+
 	return "http://authorization:3000/token"
 }
 

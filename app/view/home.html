@@ -10,14 +10,24 @@
 
 <body>
     <h2>ぴよぴよアプリ</h2>
-    <ul>
+
+    <h3 style="margin-bottom: 0;">通常</h3>
+    <ul style="margin-top: 5px;">
         <li>
-            <a href="/authorize/normal">State有り（安全）</a>
-        </li>
-        <li>
-            <a href="/authorize/no-state">State無し（脆弱）</a>
+            <a href="/authorize/normal">通常のOAuth2.0</a>
         </li>
     </ul>
+
+    <h3 style="margin-bottom: 0;">脆弱性あり</h3>
+    <ul style="margin-top: 5px;">
+        <li>
+            <a href="/authorize/no-state">state無し</a>
+        </li>
+        <li>
+            <a href="/authorize/code-many-times">複数回使用可能な認可コードを発行</a>
+        </li>
+    </ul>
+
 </body>
 
 </html>

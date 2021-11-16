@@ -28,6 +28,7 @@
         <input type="hidden" name="user_id" value="{{ .userId }}">
         <input type="hidden" name="client_id" value="{{ .client.ClientId }}">
         <input type="hidden" name="redirect_uri" value="{{ .redirectUri }}">
+        <input type="hidden" name="can_use_code_many_times" value="{{ .canUseCodeManyTimes }}">
         <input type="hidden" name="state" value="{{ .state }}">
         <div style="margin-top: 30px;">
             <button type="submit">同意</button>

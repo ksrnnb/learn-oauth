@@ -7,6 +7,7 @@ type ClientUser struct {
 
 var authorizationList []*ClientUser
 
+// TODO: このリソースは必要か確認。トークンがあれば不要？
 // 認可リストに加える
 func AddAuthorizationListIfNeeded(clientId string, userId string) {
 	clientUser := &ClientUser{

@@ -9,10 +9,13 @@ func SetRoute(e *echo.Echo) {
 	e.Renderer = newTemplate()
 	e.GET("/authorize", startOAuth)
 	e.GET("/authorize-attacker", startOAuthAttacker)
+	e.GET("/authorize-code-many-times", startOAuthCodeManyTimes)
 	e.POST("/authorize", authorize)
+	e.POST("/authorize-code-many-times", authorizeCodeManyTimes)
 	e.POST("/agree", agree)
 	e.POST("/deny", deny)
 	e.POST("/token", token)
+	e.POST("/token-many-times", tokenManyTimes)
 	e.GET("/resource", resource)
 }
 
@@ -28,10 +31,22 @@ func startOAuthAttacker(c echo.Context) error {
 	return OAuthController.ShowAuthorize(c, "authenticate-attacker")
 }
 
+// 認可コードを複数回使用可能な場合の認証画面を返す
+func startOAuthCodeManyTimes(c echo.Context) error {
+	OAuthController := controller.NewOAuthController()
+	return OAuthController.ShowAuthorize(c, "authenticate-code-many-times")
+}
+
 // 認証
 func authorize(c echo.Context) error {
 	OAuthController := controller.NewOAuthController()
-	return OAuthController.Login(c)
+	return OAuthController.Login(c, false)
+}
+
+// 認証
+func authorizeCodeManyTimes(c echo.Context) error {
+	OAuthController := controller.NewOAuthController()
+	return OAuthController.Login(c, true)
 }
 
 // 権限同意後
@@ -49,7 +64,13 @@ func deny(c echo.Context) error {
 // トークンエンドポイント
 func token(c echo.Context) error {
 	tokenController := controller.NewTokenController()
-	return tokenController.Token(c)
+	return tokenController.Token(c, false)
+}
+
+// トークンエンドポイント（認可コードを複数回利用可能）
+func tokenManyTimes(c echo.Context) error {
+	tokenController := controller.NewTokenController()
+	return tokenController.Token(c, true)
 }
 
 // リソースを取得する
