@@ -6,7 +6,7 @@ services:
       dockerfile: "${PWD}/docker/golang/Dockerfile"
     tty: true
     volumes:
-      -  "${PWD}/app:/go/src"
+      - "${PWD}/app:/go/src"
     ports:
       - "3000:3000"
 
@@ -16,6 +16,16 @@ services:
       dockerfile: "${PWD}/docker/golang/Dockerfile"
     tty: true
     volumes:
-      -  "${PWD}/authorization:/go/src"
+      - "${PWD}/authorization:/go/src"
     ports:
       - "3001:3000"
+
+  attacker:
+    build:
+      context: .
+      dockerfile: "${PWD}/docker/golang/Dockerfile"
+    tty: true
+    volumes:
+      - "${PWD}/attacker:/go/src"
+    ports:
+      - "3002:3000"
