@@ -42,6 +42,20 @@ func (controller OAuthController) ShowCodeManyTimes(c echo.Context) error {
 	})
 }
 
+// OAuth連携開始画面
+func (controller OAuthController) ShowNotFullRedirectUri(c echo.Context) error {
+	return c.Render(http.StatusOK, "start-not-full-redirect-uri.html", map[string]interface{}{
+		"csrf": c.Get("csrf"),
+	})
+}
+
+// OAuth連携開始画面
+func (controller OAuthController) ShowOAuthVulnerableRedirect(c echo.Context) error {
+	return c.Render(http.StatusOK, "start-vulnerable-redirect.html", map[string]interface{}{
+		"csrf": c.Get("csrf"),
+	})
+}
+
 func (controller OAuthController) StartOAuthNormal(c echo.Context) error {
 	state := controller.generateState()
 	err := session.Save("state", state, c)
@@ -68,6 +82,31 @@ func (controller OAuthController) StartOAuthCodeManyTimes(c echo.Context) error 
 	}
 
 	return c.Redirect(http.StatusFound, controller.authorizationUrlCodeManyTimes(state))
+}
+
+// 完全なリダイレクトURIではない場合
+func (controller OAuthController) StartOAuthNotFullRedirectUri(c echo.Context) error {
+	state := controller.generateState()
+	err := session.Save("state", state, c)
+
+	if err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusFound, controller.authorizationUrlNotFullRedirectUri(state))
+}
+
+// 完全なリダイレクトURIを事前登録していない場合
+// + トークンリクエスト時にリダイレクトURIを検証していない場合
+func (controller OAuthController) StartOAuthVulnerableRedirect(c echo.Context) error {
+	state := controller.generateState()
+	err := session.Save("state", state, c)
+
+	if err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusFound, controller.authorizationUrlVulnerableRedirect(state))
 }
 
 // 認可リクエストのURLを作成する
@@ -117,6 +156,42 @@ func (controller OAuthController) authorizationUrlCodeManyTimes(state string) st
 	query.Set("response_type", "code")
 	query.Set("client_id", os.Getenv("CLIENT_ID"))
 	query.Set("redirect_uri", os.Getenv("REDIRECT_URI"))
+	query.Set("state", state)
+
+	authorizeUrl.RawQuery = query.Encode()
+	return authorizeUrl.String()
+}
+
+// 認可リクエストのURLを作成する
+func (controller OAuthController) authorizationUrlNotFullRedirectUri(state string) string {
+	authorizeUrl := &url.URL{
+		Scheme: "http",
+		Host:   "localhost:3001",
+		Path:   "authorize",
+	}
+
+	query := authorizeUrl.Query()
+	query.Set("response_type", "code")
+	query.Set("client_id", os.Getenv("VULNERABLE_CLIENT_ID"))
+	query.Set("redirect_uri", os.Getenv("REDIRECT_URI"))
+	query.Set("state", state)
+
+	authorizeUrl.RawQuery = query.Encode()
+	return authorizeUrl.String()
+}
+
+// 認可リクエストのURLを作成する
+func (controller OAuthController) authorizationUrlVulnerableRedirect(state string) string {
+	authorizeUrl := &url.URL{
+		Scheme: "http",
+		Host:   "localhost:3001",
+		Path:   "authorize",
+	}
+
+	query := authorizeUrl.Query()
+	query.Set("response_type", "code")
+	query.Set("client_id", os.Getenv("VULNERABLE_CLIENT_ID"))
+	query.Set("redirect_uri", os.Getenv("VULNERABLE_REDIRECT_URI"))
 	query.Set("state", state)
 
 	authorizeUrl.RawQuery = query.Encode()
@@ -265,6 +340,76 @@ func (controller OAuthController) CallbackNoState(c echo.Context) error {
 	})
 }
 
+// 認可コードを受け取って、アクセストークン要求、リソース情報の取得。
+func (controller OAuthController) CallbackVulnerableRedirect(c echo.Context) error {
+	sessionState, err := session.Get("state", c)
+
+	if err != nil {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, err.Error())
+	}
+
+	queryState := c.QueryParam("state")
+
+	if sessionState != queryState {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, "state doesn't mismatch")
+	}
+
+	errorCode := c.QueryParam("error")
+
+	if errorCode != "" {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, errorCode)
+	}
+
+	code := c.QueryParam("code")
+
+	req := &TokenRequest{
+		GrantType:    "authorization_code",
+		Code:         code,
+		RedirectUri:  os.Getenv("REDIRECT_URI"),
+		ClientId:     os.Getenv("CLIENT_ID"),
+		ClientSecret: os.Getenv("CLIENT_SECRET"),
+	}
+
+	jsonReq, err := json.Marshal(req)
+
+	if err != nil {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while creating token request")
+	}
+
+	res, err := http.Post(tokenEndpointVulnerableRedirect(), "application/json", bytes.NewBuffer(jsonReq))
+	if err != nil {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while getting access token")
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode < 200 || res.StatusCode > 300 {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while getting access token")
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	var tokenRes TokenResponse
+	err = json.Unmarshal(body, &tokenRes)
+
+	if err != nil {
+		return err
+	}
+
+	resourceRes, err := controller.getUserResource(tokenRes)
+
+	if err != nil {
+		return renderErrorPage(c, http.StatusUnprocessableEntity, "error while getting user resource")
+	}
+
+	return c.Render(http.StatusOK, "user.html", map[string]interface{}{
+		"user": resourceRes,
+	})
+}
+
 type ResourceResponse struct {
 	UserId     string `json:"userId"`
 	Name       string `json:"name"`
@@ -325,6 +470,10 @@ func tokenEndpoint(canUseCodeManyTimes string) string {
 	}
 
 	return "http://authorization:3000/token"
+}
+
+func tokenEndpointVulnerableRedirect() string {
+	return "http://authorization:3000/token-vulnerable-redirect"
 }
 
 func resourceEndpoint() string {

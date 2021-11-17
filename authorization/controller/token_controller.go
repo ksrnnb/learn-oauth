@@ -71,6 +71,41 @@ func (controller TokenController) Token(c echo.Context, isManyTimes bool) error 
 	return c.JSON(http.StatusOK, res)
 }
 
+// トークンリクエスト（リダイレクトURIを検証しない場合）
+func (controller TokenController) TokenVulnerableRedirect(c echo.Context) error {
+	var req *TokenRequest
+	if err := c.Bind(&req); err != nil {
+		return errorJSONResponse(c, http.StatusInternalServerError, "error while binding request body")
+	}
+
+	client, err := controller.getClient(req.ClientId, req.ClientSecret)
+
+	if err != nil {
+		return errorJSONResponse(c, http.StatusUnprocessableEntity, err.Error())
+	}
+
+	storedCode, err := resource.FindAuthorizationCode(req.Code)
+
+	if err != nil {
+		return errorJSONResponse(c, http.StatusUnprocessableEntity, err.Error())
+	}
+
+	if err := storedCode.ValidateWithoutRedirectUri(); err != nil {
+		return errorJSONResponse(c, http.StatusUnprocessableEntity, err.Error())
+	}
+
+	storedCode.Use()
+
+	accessToken := resource.CreateNewToken(client.ClientId, storedCode.UserId)
+	res := &TokenResponse{
+		AccessToken: accessToken.Token,
+		ExpiresIn:   accessToken.ExpiresIn,
+		TokenType:   accessToken.TokenType,
+	}
+
+	return c.JSON(http.StatusOK, res)
+}
+
 // クライアントを探す
 func (controller TokenController) getClient(clientId string, clientSecret string) (*resource.Client, error) {
 	client, err := resource.FindClient(clientId)

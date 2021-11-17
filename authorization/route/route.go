@@ -10,12 +10,17 @@ func SetRoute(e *echo.Echo) {
 	e.GET("/authorize", startOAuth)
 	e.GET("/authorize-attacker", startOAuthAttacker)
 	e.GET("/authorize-code-many-times", startOAuthCodeManyTimes)
+
 	e.POST("/authorize", authorize)
 	e.POST("/authorize-code-many-times", authorizeCodeManyTimes)
+
 	e.POST("/agree", agree)
 	e.POST("/deny", deny)
+
 	e.POST("/token", token)
 	e.POST("/token-many-times", tokenManyTimes)
+	e.POST("/token-vulnerable-redirect", tokenVulnerableRedirect)
+
 	e.GET("/resource", resource)
 }
 
@@ -71,6 +76,12 @@ func token(c echo.Context) error {
 func tokenManyTimes(c echo.Context) error {
 	tokenController := controller.NewTokenController()
 	return tokenController.Token(c, true)
+}
+
+// トークンエンドポイント（リダイレクトURIのチェックなし）
+func tokenVulnerableRedirect(c echo.Context) error {
+	tokenController := controller.NewTokenController()
+	return tokenController.TokenVulnerableRedirect(c)
 }
 
 // リソースを取得する
