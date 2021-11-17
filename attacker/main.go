@@ -15,6 +15,6 @@ func main() {
 }
 
 func getCode(c echo.Context) error {
-	fmt.Println(c.Request().Referer())
+	fmt.Println("Referer: " + c.Request().Referer())
 	return nil
 }
