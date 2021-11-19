@@ -69,8 +69,7 @@ func (controller OAuthController) Login(c echo.Context, canUseCodeManyTimes bool
 
 	if err != nil {
 		session.Save("error", "認証情報に誤りがあります", c)
-		url := controller.authorizationUrl(c)
-		return c.Redirect(http.StatusFound, url)
+		return c.Redirect(http.StatusFound, c.Request().Referer())
 	}
 
 	client, err := controller.getClient(c.FormValue("client_id"))
@@ -218,25 +217,6 @@ func (controller OAuthController) callbackUrlCodeManyTimes(redirectUri string, c
 
 	callbackUrl.RawQuery = query.Encode()
 	return callbackUrl.String(), nil
-}
-
-// エラーが発生したとき、認可エンドポイントにリダイレクトするときのURLを作成する
-func (controller OAuthController) authorizationUrl(c echo.Context) string {
-	authorizeUrl := &url.URL{
-		Scheme: "http",
-		Host:   "localhost:3001",
-		Path:   "authorize",
-	}
-
-	query := authorizeUrl.Query()
-	query.Set("response_type", "code")
-	query.Set("client_id", c.FormValue("client_id"))
-	query.Set("redirect_uri", c.FormValue("redirect_uri"))
-	query.Set("state", c.FormValue("state"))
-
-	authorizeUrl.RawQuery = query.Encode()
-
-	return authorizeUrl.String()
 }
 
 // エラーレスポンスのリダイレクトURLを作成する
