@@ -6,11 +6,45 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ぴよぴよアプリ</title>
+    <style>
+        td {
+            padding: 10px;
+        }
+
+        .red {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
     <h2>ぴよぴよアプリ</h2>
-    <p>完全なリダイレクトURIを事前登録していない場合 + トークンリクエスト時にリダイレクトURIを検証していない場合</p>
+
+    <h3>パラメータ設定</h3>
+    <table border="1" style="margin-bottom: 20px;">
+        <tr>
+            <th>パラメータ</th>
+            <th>設定</th>
+        </tr>
+        <tr>
+            <td>state</td>
+            <td>有り</td>
+        </tr>
+        <tr>
+            <td>認可コード使用可能回数</td>
+            <td>1回のみ</td>
+        </tr>
+        <tr>
+            <td>事前登録されたリダイレクトURI</td>
+            <td class="red">http://localhost:3000</td>
+        </tr>
+        <tr>
+            <td>トークンリクエスト時のredirect_uri一致検証</td>
+            <td class="red">無し</td>
+        </tr>
+    </table>
+
     <form action="/authorize/vulnerable-redirect" method="POST">
         <input type="hidden" name="_token" value="{{ .csrf }}">
         <button type="submit">ほげアプリと連携する</button>
