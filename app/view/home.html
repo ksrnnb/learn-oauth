@@ -11,26 +11,26 @@
 <body>
     <h2>ぴよぴよアプリ</h2>
 
-    <h3 style="margin-bottom: 0;">通常</h3>
+    <h3 style="margin-bottom: 0;">1 通常</h3>
     <ul style="margin-top: 5px;">
         <li>
-            <a href="/authorize/normal">通常のOAuth2.0</a>
+            <a href="/authorize/normal">1-1 通常のOAuth2.0</a>
         </li>
     </ul>
 
-    <h3 style="margin-bottom: 0;">脆弱性あり</h3>
+    <h3 style="margin-bottom: 0;">2 脆弱性あり</h3>
     <ul style="margin-top: 5px;">
         <li>
-            <a href="/authorize/no-state">state無し</a>
+            <a href="/authorize/no-state">2-1 state無し</a>
         </li>
         <li>
-            <a href="/authorize/code-many-times">複数回使用可能な認可コードを発行</a>
+            <a href="/authorize/code-many-times">2-2 複数回使用可能な認可コードを発行</a>
         </li>
         <li>
-            <a href="/authorize/not-full-redirect-uri">完全なリダイレクトURIを事前登録していない場合</a>
+            <a href="/authorize/not-full-redirect-uri">2-3 完全なリダイレクトURIを事前登録していない場合</a>
         </li>
         <li>
-            <a href="/authorize/vulnerable-redirect">完全なリダイレクトURIを事前登録していない場合 + トークンリクエスト時にリダイレクトURIを検証していない場合</a>
+            <a href="/authorize/vulnerable-redirect">2-4 完全なリダイレクトURIを事前登録していない場合 + トークンリクエスト時にリダイレクトURIを検証していない場合</a>
         </li>
     </ul>
 

@@ -24,35 +24,40 @@ func NewOAuthController() OAuthController {
 // OAuth連携開始画面
 func (controller OAuthController) ShowNormalStart(c echo.Context) error {
 	return c.Render(http.StatusOK, "start-normal.html", map[string]interface{}{
-		"csrf": c.Get("csrf"),
+		"csrf":        c.Get("csrf"),
+		"redirectUri": os.Getenv("REDIRECT_URI"),
 	})
 }
 
 // OAuth連携開始画面
 func (controller OAuthController) ShowNoStateStart(c echo.Context) error {
 	return c.Render(http.StatusOK, "start-no-state.html", map[string]interface{}{
-		"csrf": c.Get("csrf"),
+		"csrf":        c.Get("csrf"),
+		"redirectUri": os.Getenv("REDIRECT_URI_NO_STATE"),
 	})
 }
 
 // OAuth連携開始画面
 func (controller OAuthController) ShowCodeManyTimes(c echo.Context) error {
 	return c.Render(http.StatusOK, "start-code-many-times.html", map[string]interface{}{
-		"csrf": c.Get("csrf"),
+		"csrf":        c.Get("csrf"),
+		"redirectUri": os.Getenv("REDIRECT_URI"),
 	})
 }
 
 // OAuth連携開始画面
 func (controller OAuthController) ShowNotFullRedirectUri(c echo.Context) error {
 	return c.Render(http.StatusOK, "start-not-full-redirect-uri.html", map[string]interface{}{
-		"csrf": c.Get("csrf"),
+		"csrf":        c.Get("csrf"),
+		"redirectUri": os.Getenv("REDIRECT_URI"),
 	})
 }
 
 // OAuth連携開始画面
 func (controller OAuthController) ShowOAuthVulnerableRedirect(c echo.Context) error {
 	return c.Render(http.StatusOK, "start-vulnerable-redirect.html", map[string]interface{}{
-		"csrf": c.Get("csrf"),
+		"csrf":        c.Get("csrf"),
+		"redirectUri": os.Getenv("VULNERABLE_REDIRECT_URI"),
 	})
 }
 

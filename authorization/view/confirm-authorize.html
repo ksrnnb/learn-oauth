@@ -12,6 +12,13 @@
     <h2>ほげアプリ 権限同意</h2>
     <h5>「{{ .client.Name }}」が以下の許可をリクエストしています。</h5>
 
+    <ul>
+        <li>ユーザーID</li>
+        <li>ユーザー名</li>
+        <li>メールアドレス</li>
+        <li>アバター画像</li>
+    </ul>
+
     <form action="/deny" method="POST">
         <input type="hidden" name="_token" value="{{ .csrf }}">
         <input type="hidden" name="user_id" value="{{ .userId }}">
